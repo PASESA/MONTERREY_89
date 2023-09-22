@@ -42,7 +42,7 @@ AutoA = "AutoA.png"
 qr_imagen = "reducida.png"
 PROMOCIONES = ('prom 1')
 
-nombre_estacionamiento = 'Amores'
+nombre_estacionamiento = 'MONTERREY_89'
 estilo = ('Arial', 12)
 
 from controller_email import main
