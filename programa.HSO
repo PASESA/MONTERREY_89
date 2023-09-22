@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd /home/pi/Documents/Amores/Cobro/
+cd /home/pi/Documentos/WORKSPACE/MONTERREY_89/Cobro
 
 sudo python3 pantallfull.py 
