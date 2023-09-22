@@ -2758,5 +2758,5 @@ class FormularioOperacion:
         self.importe.set(text_importe)
         self.IImporte.config(text=self.importe.get())
 
-aplicacion1=FormularioOperacion()
+# aplicacion1=FormularioOperacion()
 
