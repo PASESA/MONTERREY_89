@@ -643,6 +643,9 @@ class FormularioOperacion:
         self.TiempoTotal.set(TiempoTotal)
         self.TiempoTotal_auxiliar.set(self.TiempoTotal.get()[:-3])
 
+        self.horas_dentro = 12
+        self.minutos_dentro = 1
+
         importe = 0
         if self.dias_dentro == 0 and self.horas_dentro == 0:
             importe = 28
@@ -664,26 +667,33 @@ class FormularioOperacion:
             if self.horas_dentro <= 3:
 
                 importe = (self.horas_dentro * 28) + (cuarto_hora * 7)
-                if self.horas_dentro == 2 and cuarto_hora == 4:
-                    importe = 77
 
-                if self.horas_dentro == 3 and self.minutos_dentro >= 0:
-                    importe = 80
+                if self.horas_dentro == 3 and cuarto_hora == 1:
+                    importe = 90
 
             else:
                 if 3 <= self.horas_dentro < 12:
-                    importe = 80
+                    importe = 90
 
-                elif 12 <= self.horas_dentro <= 14:
-                    importe = (self.horas_dentro * 28) + (cuarto_hora * 7) - 256
-                    if cuarto_hora == 4:
-                        importe = 160
+                elif 12 <= self.horas_dentro <= 15:
+                    importe = 100
+
+                    if self.horas_dentro == 12 and cuarto_hora == 0:
+                        importe = 90
+
+                    elif self.horas_dentro == 15 and cuarto_hora == 0:
+                        importe = 100
+    
+                    elif self.horas_dentro == 15 and cuarto_hora >= 1:
+                        importe = 250
+                    else:
+                        importe = 100
 
                 else:
-                    importe = 160
+                    importe = 250
 
                 # Calcula el importe total a pagar
-            importe = (self.dias_dentro * 160) + importe
+            importe = (self.dias_dentro * 250) + importe
 
         # Establecer el importe y mostrarlo
         self.mostrar_importe(importe)
@@ -2748,5 +2758,5 @@ class FormularioOperacion:
         self.importe.set(text_importe)
         self.IImporte.config(text=self.importe.get())
 
-# aplicacion1=FormularioOperacion()
+aplicacion1=FormularioOperacion()
 
