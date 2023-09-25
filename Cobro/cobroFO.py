@@ -46,10 +46,12 @@ nombre_estacionamiento = 'MONTERREY_89'
 estilo = ('Arial', 12)
 
 from controller_email import main
+send_data = False
 
 class FormularioOperacion:
     def __init__(self):
-        atexit.register(main)
+        if send_data:
+            atexit.register(main)
 
         self.controlador_crud_pensionados = Pensionados()
         self.folio_auxiliar = None
@@ -643,10 +645,8 @@ class FormularioOperacion:
         self.TiempoTotal.set(TiempoTotal)
         self.TiempoTotal_auxiliar.set(self.TiempoTotal.get()[:-3])
 
-        self.horas_dentro = 12
-        self.minutos_dentro = 1
-
         importe = 0
+
         if self.dias_dentro == 0 and self.horas_dentro == 0:
             importe = 28
         else:
@@ -676,14 +676,10 @@ class FormularioOperacion:
                     importe = 90
 
                 elif 12 <= self.horas_dentro <= 15:
-                    importe = 100
 
                     if self.horas_dentro == 12 and cuarto_hora == 0:
                         importe = 90
 
-                    elif self.horas_dentro == 15 and cuarto_hora == 0:
-                        importe = 100
-    
                     elif self.horas_dentro == 15 and cuarto_hora >= 1:
                         importe = 250
                     else:
