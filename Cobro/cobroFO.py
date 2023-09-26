@@ -668,7 +668,7 @@ class FormularioOperacion:
 
                 importe = (self.horas_dentro * 28) + (cuarto_hora * 7)
 
-                if self.horas_dentro == 3 and cuarto_hora == 1:
+                if self.horas_dentro == 3 and cuarto_hora >= 1:
                     importe = 90
 
             else:
@@ -2754,5 +2754,5 @@ class FormularioOperacion:
         self.importe.set(text_importe)
         self.IImporte.config(text=self.importe.get())
 
-# aplicacion1=FormularioOperacion()
+aplicacion1=FormularioOperacion()
 
