@@ -46,7 +46,7 @@ nombre_estacionamiento = 'MONTERREY_89'
 estilo = ('Arial', 12)
 
 from controller_email import main
-send_data = False
+send_data = True
 
 class FormularioOperacion:
     def __init__(self):
