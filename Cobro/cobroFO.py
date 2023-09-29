@@ -1540,25 +1540,25 @@ class FormularioOperacion:
                         #mb.showinfo("msj dos",Ano)
                         datos=(mes, Ano)
                         #Obtenemos Fecha (Inicialy Final) del mes que solicita el reporte
-                        CorteMaxMin=self.operacion1.Cortes_MaxMin(datos)
+                        CorteMaxMin=self.DB.Cortes_MaxMin(datos)
                         for fila in CorteMaxMin:
                             UltFecha=fila[0] 
                             IniFecha=fila[1]                      
                         #Obtenemos Primer y Ultimo Folio de Cortes del Mes que se solicita el reporte
                         datos=(IniFecha)
-                        CorteIni=self.operacion1.Cortes_Folio(datos)
+                        CorteIni=self.DB.Cortes_Folio(datos)
                         #mb.showinfo("msj uno",UltFecha)
                         datos=(UltFecha)
-                        #CorteFin=self.operacion1.Cortes_FolioFin(datos)
+                        #CorteFin=self.DB.Cortes_FolioFin(datos)
                         #mb.showinfo("msj uno",CorteFin)
-                        CorteFin=self.operacion1.Cortes_Folio(datos)
+                        CorteFin=self.DB.Cortes_Folio(datos)
                         #mb.showinfo("msj uno",CorteIni)
                         #mb.showinfo("msj dos",CorteFin)
                         #Obtnemos los Registros entre estos dos Folios para el cuerpo del reporte       
                         datos=(CorteIni, CorteFin)
                         #datos=(IniFecha, UltFecha)
-                        Registros=self.operacion1.Registros_corte(datos)
-                        TotalesCorte=self.operacion1.Totales_corte(datos)
+                        Registros=self.DB.Registros_corte(datos)
+                        TotalesCorte=self.DB.Totales_corte(datos)
                         workbook = xlsxwriter.Workbook(Libro)
                         worksheet = workbook.add_worksheet('CORTE')
                         #Definimos Encabezado Principal
@@ -2532,7 +2532,7 @@ class FormularioOperacion:
 
             tarjeta = int(numtarjeta)
             print(tarjeta)
-            Existe = self.operacion1.ValidarPen(tarjeta)
+            Existe = self.DB.ValidarPen(tarjeta)
 
             if len(Existe) == 0:
                 self.label_informacion.config(text="No existe Pensionado")
@@ -2540,7 +2540,7 @@ class FormularioOperacion:
                 self.entryPlaca.focus()
                 return False
             else:
-                respuesta = self.operacion1.ConsultaPensionado_entrar(Existe)
+                respuesta = self.DB.ConsultaPensionado_entrar(Existe)
 
                 for fila in respuesta:
                     VigAct = fila[0]
@@ -2582,8 +2582,8 @@ class FormularioOperacion:
                         Entrada = datetime.today()
                         datos = (Existe, tarjeta, Entrada, 'Adentro')
                         datos1 = ('Adentro', Existe)
-                        self.operacion1.MovsPensionado(datos)
-                        self.operacion1.UpdPensionado(datos1)
+                        self.DB.MovsPensionado(datos)
+                        self.DB.UpdPensionado(datos1)
 
                         self.Placa.set("")
                         self.entryPlaca.focus()
