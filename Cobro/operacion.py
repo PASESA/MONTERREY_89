@@ -212,7 +212,7 @@ class Operacion:
     def GuarCorte(self, datos):
         cone=self.abrir()
         cursor=cone.cursor()
-        sql="insert into Cortes(Importe, FechaIni, FechaFin,Quedados,idInicial,NumBolQued) values (%s,%s,%s,%s,%s,%s)"
+        sql="insert into Cortes(Importe, FechaIni, FechaFin,Quedados,idInicial,NumBolQued, Pensionados_Quedados) values (%s,%s,%s,%s,%s,%s,%s)"
         #sql = "update Entradas set CorteInc = 1 WHERE Importe > 0"
         cursor.execute(sql,datos)
         cone.commit()
@@ -650,7 +650,7 @@ class Operacion:
     def MovsPensionado(self, datos):
         cone=self.abrir()
         cursor=cone.cursor()
-        sql="INSERT INTO MovimientosPens(idcliente, num_tarjeta, Entrada, Estatus) values (%s,%s,%s,%s)"
+        sql="INSERT INTO MovimientosPens(idcliente, num_tarjeta, Entrada, Estatus, Corte) values (%s,%s,%s,%s,%s)"
         cursor.execute(sql,datos)
         cone.commit()
         cone.close()
@@ -669,7 +669,7 @@ class Operacion:
     def ConsultaPensionado_entrar(self, datos):
         cone=self.abrir()
         cursor=cone.cursor()
-        sql="SELECT Fecha_vigencia, Estatus, Vigencia, Tolerancia FROM Pensionados where id_cliente=%s"
+        sql="SELECT Fecha_vigencia, Estatus, Vigencia, Tolerancia, Placas, Nom_cliente, Apell1_cliente, Apell2_cliente FROM Pensionados where id_cliente=%s"
         cursor.execute(sql,datos)
         cone.close()
         return cursor.fetchall()
