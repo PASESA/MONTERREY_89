@@ -760,7 +760,6 @@ class FormularioOperacion:
         self.Comprobante(titulo='CONTRA', imagen_logo=False)
 
         self.limpiar_campos()
-        self.AbrirBarrera()
 
 
 
@@ -1019,7 +1018,6 @@ class FormularioOperacion:
         printer.set(align="left")
 
         printer.text(f'ID de pensionado: {numtarjeta}\n')
-        printer.set('Big line\n', font='b')
         printer.text(f'El auto entro: {Entrada}\n')
         printer.text(f'El auto salio: {Salida}\n')
         printer.text(f'Tiempo total: {tiempo_total}')
