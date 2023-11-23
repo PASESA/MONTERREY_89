@@ -57,7 +57,8 @@ button_letters_color = "white"
 from controller_email import main
 
 show_clock = False
-send_data = True
+send_data = False
+pantalla_completa = False
 
 class FormularioOperacion:
     def __init__(self):
@@ -71,12 +72,13 @@ class FormularioOperacion:
         self.root=tk.Tk()
         self.root.title(f"{nombre_estacionamiento} COBRO")
 
-        # Obtener el ancho y alto de la pantalla
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
+        if pantalla_completa:
+            # Obtener el ancho y alto de la pantalla
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
 
-        # Configura la ventana para que ocupe toda la pantalla
-        self.root.geometry(f"{screen_width}x{screen_height}+0+0")
+            # Configura la ventana para que ocupe toda la pantalla
+            self.root.geometry(f"{screen_width}x{screen_height}+0+0")
 
         # Colocar el LabelFrame en las coordenadas calculadas
         principal = tk.LabelFrame(self.root)
@@ -172,12 +174,10 @@ class FormularioOperacion:
         self.Reloj.grid(column=0, row=0, padx=2, pady=2)
         self.entry_placa.focus()
 
-
     def check_inputs(self):
         fecha_hora =datetime.now().strftime("%d-%b-%Y %H:%M:%S")
         self.Reloj.config(text=fecha_hora)            
         self.root.after(60, self.check_inputs)
-
 
     def agregarRegistroRFID(self):
         placa=self.Placa.get()
@@ -186,7 +186,6 @@ class FormularioOperacion:
             return
 
         MaxFolio=self.DB.MaxfolioEntrada()
-        MaxFolio = MaxFolio[0][0]
         folio_boleto = MaxFolio + 1
         self.MaxId.set(folio_boleto)
 
@@ -232,7 +231,6 @@ class FormularioOperacion:
         self.DB.altaRegistroRFID(datos)
         self.Placa.set('')
         self.label_informacion.config(text="Se genera boleto")
-
 
     #########################fin de pagina1 inicio pagina2#########################
     def consulta_por_folio(self):
@@ -412,7 +410,6 @@ class FormularioOperacion:
 
         self.BoletoDentro()
 
-
     def BoletoDentro(self):
         respuesta=self.DB.Autos_dentro()
         self.scrolledtxt.delete("1.0", tk.END)
@@ -497,7 +494,6 @@ class FormularioOperacion:
             return
 
         MaxFolio=str(self.DB.MaxfolioEntrada())
-        MaxFolio = MaxFolio[0][0]
         folio_boleto = MaxFolio + 1
         self.MaxId.set(folio_boleto)
 
@@ -574,7 +570,6 @@ class FormularioOperacion:
         self.fecha_salida.set(respuesta[0][1])
         self.Placa.set(respuesta[0][6])
         self.CalculaPermanencia()#nos vamos a la funcion de calcular permanencia
-
 
     def CalculaPermanencia(self):
         """
@@ -761,8 +756,6 @@ class FormularioOperacion:
 
         self.limpiar_campos()
 
-
-
     def Comprobante(self, titulo: str = 'Comprobante de pago', imagen_logo: bool = True, QR_salida: bool = False) -> None:
         """Genera un comprobante de pago o un boleto cancelado.
 
@@ -826,7 +819,6 @@ class FormularioOperacion:
 
         printer.cut()
         printer.close()
-
 
     def GuardarCobro(self, motive:str=None):
         """Guarda la informacion de un cobro realizado en la base de datos."""
@@ -1031,25 +1023,21 @@ class FormularioOperacion:
         self.PenAdentro()
         mb.showinfo("Pension", 'Se registra SALIDA de pension')
 
-
-
-
     ###################### Fin de Pagina2 Inicio Pagina3 ###############################
     def listado_completo(self):
         self.motive_cancel=tk.StringVar()
 
-        self.pagina3 = ttk.Frame(self.cuaderno1)
-        self.cuaderno1.add(self.pagina3, text="Modulo de Corte")
-        self.labelframe1=tk.LabelFrame(self.pagina3, text="Autos")
+        self.modulo_corte = ttk.Frame(self.cuaderno1)
+        self.cuaderno1.add(self.modulo_corte, text="Modulo de Corte")
+        self.labelframe1=tk.LabelFrame(self.modulo_corte, text="Autos")
         self.labelframe1.grid(column=0, row=0, padx=1, pady=1)
-        self.labelframe2=tk.LabelFrame(self.pagina3, text="Generar Corte")
+        self.labelframe2=tk.LabelFrame(self.modulo_corte, text="Generar Corte")
         self.labelframe2.grid(column=1, row=0, padx=0, pady=0)
-        self.labelframe3=tk.LabelFrame(self.pagina3, text="Consulta Cortes Anteriores")
-        self.labelframe3.grid(column=0, row=1, padx=0, pady=0)
 
-        self.labelframe4=tk.LabelFrame(self.pagina3, text="Cuadro Comparativo")
+
+        self.labelframe4=tk.LabelFrame(self.modulo_corte, text="Cuadro Comparativo")
         self.labelframe4.grid(column=1, row=1, padx=0, pady=0)
-        self.labelframe5=tk.LabelFrame(self.pagina3, text="Reporte de Cortes")
+        self.labelframe5=tk.LabelFrame(self.modulo_corte, text="Reporte de Cortes")
         self.labelframe5.grid(column=1, row=2, padx=1, pady=1)       
         self.lblSal=tk.Label(self.labelframe4, text="Salida de Autos")
         self.lblSal.grid(column=3, row=1, padx=1, pady=1)
@@ -1094,7 +1082,7 @@ class FormularioOperacion:
         self.boton6=tk.Button(self.labelframe4, text="Consulta Bol-Sensor", command=self.Puertoycontar, width=15, height=1, anchor="center", background=button_color, fg=button_letters_color)
         self.boton6.grid(column=1, row=0, padx=1, pady=1)
 
-        self.FrmCancelado=tk.LabelFrame(self.pagina3, text="Boleto Cancelado")
+        self.FrmCancelado=tk.LabelFrame(self.modulo_corte, text="Boleto Cancelado")
         self.FrmCancelado.grid(column=0, row=2, padx=0, pady=0)
         self.labelCorte=tk.Label(self.labelframe2, text="El Total del CORTE es:")
         self.labelCorte.grid(column=0, row=1, padx=0, pady=0)
@@ -1104,10 +1092,25 @@ class FormularioOperacion:
         self.label3.grid(column=0, row=3, padx=1, pady=1)
         self.label4=tk.Label(self.labelframe2, text="El Numero de CORTE es:")
         self.label4.grid(column=0, row=4, padx=1, pady=1)
-        self.label5=tk.Label(self.labelframe3, text="CORTE a Consultar :")
-        self.label5.grid(column=0, row=1, padx=1, pady=1)
-        self.label6=tk.Label(self.labelframe3, text="Fecha y hora del CORTE")
-        self.label6.grid(column=0, row=2, padx=1, pady=1)
+
+
+
+        label_frame_corte_anterior = tk.LabelFrame(self.modulo_corte, text="Consulta Cortes Anteriores")
+        label_frame_corte_anterior.grid(column=0, row=1, padx=0, pady=0)
+
+        label_etiquetas_corte = tk.Frame(label_frame_corte_anterior)
+        label_etiquetas_corte.grid(column=0, row=0, padx=0, pady=0)
+
+        etiqueta_corte=tk.Label(label_etiquetas_corte, text="CORTE a Consultar: ")
+        etiqueta_corte.grid(column=0, row=0, padx=1, pady=1)
+
+        self.corte_anterior=tk.StringVar()
+        self.entry_cortes_anteriores=tk.Entry(label_etiquetas_corte, width=20, textvariable=self.corte_anterior, justify='center')
+        self.entry_cortes_anteriores.grid(column=1, row=0)
+
+        boton_corte = tk.Button(label_frame_corte_anterior, text="Imprimir Corte", background=button_color, fg=button_letters_color, command=self.reimprimir_corte, width=15, height=3, anchor="center")
+        boton_corte.grid(column=0, row=1, padx=4, pady=4)
+
 
 
         frame_folio_cancelado = tk.Frame(self.FrmCancelado)
@@ -1127,9 +1130,7 @@ class FormularioOperacion:
         self.entryFechUCORTE=tk.Entry(self.labelframe2, width=20, textvariable=self.FechUCORTE, state= "readonly")
         self.entryFechUCORTE.grid(column=1, row=3)
 
-        self.CortesAnteri=tk.StringVar()
-        self.entryCortesAnteri=tk.Entry(self.labelframe3, width=20, textvariable=self.CortesAnteri)
-        self.entryCortesAnteri.grid(column=1, row=0)
+
 
         frame_botones_entrada = Frame(self.labelframe1)
         frame_botones_entrada.grid(column=0, row=0, padx=4, pady=4)
@@ -1142,10 +1143,9 @@ class FormularioOperacion:
         self.boton3=tk.Button(self.labelframe2, text="Calcular Corte", command=self.Calcular_Corte, width=15, height=1, background=button_color, fg=button_letters_color)
         self.boton3.grid(column=2, row=1, padx=4, pady=4)
         self.boton4=tk.Button(self.labelframe2, text="Generar Corte", command=self.Guardar_Corte, width=15, height=1, anchor="center", background=button_color, fg=button_letters_color)
-
         self.boton4.grid(column=2, row=3, padx=4, pady=4)
-        self.boton5=tk.Button(self.labelframe3, text="Imprimir salidas\nCorte", background=button_color, fg=button_letters_color, command=self.desglose_cobrados, width=15, height=3, anchor="center")
-        self.boton5.grid(column=1, row=2, padx=4, pady=4)
+
+
         self.scrolledtext1=st.ScrolledText(self.labelframe1, width=28, height=4)
         self.scrolledtext1.grid(column=0,row=1, padx=1, pady=1)
 
@@ -1178,23 +1178,152 @@ class FormularioOperacion:
         width=15, height=1, anchor="center", background=button_color, fg=button_letters_color)
         self.boton_usuarios.grid(column=0, row=0, padx=4, pady=4)
 
+    def reimprimir_corte(self):
+        numero_corte = self.entry_cortes_anteriores.get()
+        if not numero_corte:
+            mb.showinfo("Error", "Ingrese el numero de corte a consultar")
+            self.entry_cortes_anteriores.focus()
+            self.corte_anterior.set("")
+            return
+
+        corte_info = self.DB.consultar_corte(numero_corte)
+
+        if len(corte_info) == 0:
+            mb.showinfo("Error", "No hay información que corresponda al corte solicitado")
+            self.entry_cortes_anteriores.focus()
+            self.corte_anterior.set("")
+            return
+
+        numero_corte = int(numero_corte)
+        for info in corte_info:
+            inicio_corte_fecha = self.DB.consultar_corte(numero_corte-1)[0][1]
+            final_corte_fecha = info[1]
+            importe_corte = info[2]
+            BAnterioresImpr = info[3]
+            folio_final = info[4]
+        
+        folio_inicio = self.DB.consultar_corte(numero_corte-1)[0][4]
+        
+        corte_info = self.DB.consultar_información_corte(numero_corte)
+        for info in corte_info:
+            nombre_cajero = info[0]
+            turno_cajero = info[1]
 
 
-
-    def desglose_cobrados(self):
-        Numcorte=str(self.CortesAnteri.get(), )
-        Numcorte=int(Numcorte)
-        Numcorte=str(Numcorte)
-
-        respuesta=self.DB.desglose_cobrados(Numcorte)
 
         printer = Usb(0x04b8, 0x0e15, 0)
-        printer.text("El Numero de corte es "+Numcorte+'\n')
+
+        printer.set(align="center")
+        printer.text(F"REIMPRESION DEL CORTE {numero_corte}"+'\n')
+        printer.set(align="left")
+
+        printer.text(f"Est {nombre_estacionamiento} CORTE Num {numero_corte}\n")
+        printer.text(f'IMPORTE: ${importe_corte}\n')
+
+        nombre_dia_inicio = self.get_day_name(inicio_corte_fecha.weekday())
+        inicio_corte_fecha = datetime.strftime(inicio_corte_fecha, '%d-%b-%Y a las %H:%M:%S')
+        printer.text(f'Inicio: {nombre_dia_inicio} {inicio_corte_fecha}\n')
+
+
+        nombre_dia_fin = self.get_day_name(final_corte_fecha.weekday())
+        final_corte_fecha = datetime.strftime(final_corte_fecha, "%d-%b-%Y a las %H:%M:%S")
+        printer.text(f'Final: {nombre_dia_fin} {final_corte_fecha}\n')
+
+        BEDespuesCorteImpre = self.BEDespuesCorte.get()
+
+
+        printer.text(f"Folio {folio_inicio} al inicio del turno\n")
+        printer.text(f"Folio {folio_final} al final del turno\n") 
+        printer.text(f"Cajero en Turno: {nombre_cajero}\n")
+        printer.text(f"Turno: {turno_cajero}\n")
+
+
+        BolCobrImpresion = self.DB.Cuantos_Boletos_Cobro_Reimpresion(numero_corte)
+        printer.text(f"Boletos Cobrados: {BolCobrImpresion}\n")
+        BEDespuesCorteImpre = self.DB.boletos_expedidos_reimpresion(numero_corte)
+        printer.text(f'Boletos Expedidos: {BEDespuesCorteImpre}\n')
+        BAnterioresImpr = self.DB.consultar_corte(numero_corte-1)[0][3]
+        printer.text(f"Boletos Turno Anterior: {BAnterioresImpr}\n")
+
+        BDentroImp = int(BAnterioresImpr) + int(BEDespuesCorteImpre) - int(BolCobrImpresion)
+        printer.text(f'Boletos dejados: {BDentroImp}\n')
+
+        printer.text('------------------------------\n')
+
+        self.ImporteCorte.set("")
+
+        respuesta=self.DB.desglose_cobrados(numero_corte)
+
+        printer.set(align="center")
+        printer.text("Cantidad e Importes "+'\n')
+        printer.set(align="left")
+
+        printer.text("Cantidad - Tarifa - valor C/U - Total "+'\n')
         for fila in respuesta:
             printer.text(f"  {str(fila[0])}  -  {str(fila[1])}  -  ${str(fila[2])}   -  ${str(fila[3])}\n")
 
+        else:
+            printer.text("\n")
+            printer.text(f"{BolCobrImpresion} Boletos        Suma total ${importe_corte}\n\n")    
+
+        printer.text("----------------------------------\n")
+
+        desgloce_cancelados = self.DB.desgloce_cancelados(numero_corte)
+        if len(desgloce_cancelados) > 0:
+            printer.set(align="center")
+            printer.text("Boletos cancelados\n\n")
+            printer.set(align="left")
+
+            for boleto in desgloce_cancelados:
+                printer.text(f"Folio:{boleto[0]} - Motivo: {boleto[1]}\n")
+            printer.text("----------------------------------\n\n")
+
+        Quedados_Pensionados = self.controlador_crud_pensionados.get_Anteriores_Pensionados(numero_corte)
+        Entradas_Totales_Pensionados = self.controlador_crud_pensionados.get_Entradas_Totales_Pensionados(numero_corte)
+        Salidas_Pensionados = self.controlador_crud_pensionados.get_Salidas_Pensionados(numero_corte)
+        Anteriores_Pensionados = self.controlador_crud_pensionados.get_Anteriores_Pensionados(numero_corte-1)
+        
+        quedados_totales = Quedados_Pensionados - Anteriores_Pensionados
+
+        Quedados = 0 if quedados_totales < 0 else quedados_totales
+
+        if Entradas_Totales_Pensionados > 0 or Salidas_Pensionados > 0 or Quedados_Pensionados > 0:
+
+            printer.set(align="center")
+            printer.text("Entradas de pensionados\n\n")
+            printer.set(align="left")
+
+            printer.text(f"Anteriores: {Anteriores_Pensionados}\n")
+            printer.text(f"Entradas: {Entradas_Totales_Pensionados}\n")
+            printer.text(f"Salidas: {Salidas_Pensionados}\n")
+            printer.text(f"Quedados: {Quedados}\n")
+
+            printer.text("----------------------------------\n\n")
+
+        # Obtiene la cantidad e importes de las pensiones para el corte actual
+        respuesta = self.DB.total_pensionados_corte(numero_corte)
+
+        # Si hay pensionados en el corte, se procede a imprimir la seccion correspondiente
+        if len(respuesta) > 0:
+            printer.set(align="center")
+            printer.text("Cantidad e Importes Pensiones" + '\n')
+            printer.set(align="left")
+            printer.text("Cuantos - Concepto - ImporteTotal " + '\n')
+            for fila in respuesta:
+                printer.text(f"   {str(fila[0])}   -  {str(fila[1])}   -   ${str(fila[2])}\n")
+            else:
+                printer.text("----------------------------------\n")
+
+        # Imprime ultimo separador
+        printer.text("----------------------------------\n")
+
+        # Corta el papel
         printer.cut()
         printer.close()
+
+        self.entry_cortes_anteriores.focus()
+        self.corte_anterior.set("")
+
 
 
     def BoletoCancelado(self):
@@ -1324,7 +1453,6 @@ class FormularioOperacion:
             self.cancel_window.destroy()
             self.activar()
 
-
     def listar(self):
         respuesta=self.DB.recuperar_todos()
         self.scrolledtext1.delete("1.0", tk.END)
@@ -1358,19 +1486,12 @@ class FormularioOperacion:
             printer.close()
 
     def Calcular_Corte(self):
-        respuesta=self.DB.corte()
-        self.ImporteCorte.set(respuesta)
+        self.ImporteCorte.set(self.DB.corte())
+
         ##obtengamo la fechaFin del ultimo corte
+        self.FechUCORTE.set(self.DB.UltimoCorte())
 
-        ultiCort1=self.DB.UltimoCorte()
-        ultiCort1=ultiCort1[0][0]
-
-        self.FechUCORTE.set(ultiCort1)# donde el label no esta bloqueada
-        ###ahora obtenemos la fecha del corte ha realizar
-        fecha = datetime.today()
-        fecha1= fecha.strftime("%Y-%m-%d %H:%M:%S")
-        fechaActual= datetime.strptime(fecha1, '%Y-%m-%d %H:%M:%S')
-        self.FechaCorte.set(fechaActual)#donde el label esta bloqueado
+        self.FechaCorte.set(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))#donde el label esta bloqueado
 
 
     def Guardar_Corte(self):
@@ -1380,134 +1501,89 @@ class FormularioOperacion:
         ######Obtenemos los datos del Cajero en Turno
         cajero=self.DB.CajeroenTurno()
         for fila in cajero:
-            cajero1 = fila[0]
-            nombre2 = fila[1]
-            inicio1 = fila[2]
-            turno1 = fila[3]
-            usuario1 = fila[4]
-        hoy = str(datetime.today())
-        hoy1=hoy[:20]
+            id_cajero = fila[0]
+            nombre_cajero = fila[1]
+            inicio_corte = self.FechUCORTE.get()
+            turno_cajero = fila[3]
 
-
-        datos=(hoy1, cajero1)
+        fecha_hoy = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        datos=(fecha_hoy, id_cajero)
         self.DB.Cierreusuario(datos)
-        dato=(cajero1)
-        self.DB.NoAplicausuario(dato)
-        ##la fecha final de este corte que es la actual
-        fechaDECorte = str(self.FechaCorte.get(),)
-        fechaDECorte = datetime.strptime(fechaDECorte, '%Y-%m-%d %H:%M:%S' )
-        ######la fecha del inicial obtiene de labase de datos
-        fechaInicio1 = str(inicio1)
-        fechaInicio2 = datetime.strptime(fechaInicio1, '%Y-%m-%d %H:%M:%S')
-        fechaInicio = fechaInicio2        
-        ######el importe se obtiene de la suma
-        ImpCorte2 =str(self.ImporteCorte.get(),)
-        Im38=ImpCorte2.strip('(,)')
-        AEE = self.DB.CuantosAutosdentro()
-        maxnumid=str(self.DB.MaxfolioEntrada())
-        maxnumid = "".join([x for x in maxnumid if x.isdigit()])#con esto solo obtenemos los numeros
-        maxnumid=int(maxnumid)
-        maxnumid=str(maxnumid)
-        pasa = str(self.BDentro.get(),)
-        NumBolQued = pasa.strip('(),')
 
+        dato=(id_cajero)
+        self.DB.NoAplicausuario(dato)
+
+        ##la fecha final de este corte que es la actual
+        fechaDECorte = self.FechaCorte.get()
+     
+        ######el importe se obtiene de la suma
+        importe_corte = self.ImporteCorte.get()
+        AEE = self.DB.CuantosAutosdentro()
+        maxnumid = self.DB.MaxfolioEntrada()
+        NumBolQued = self.BDentro.get()
         Quedados_Pensionados = self.controlador_crud_pensionados.get_Quedados_Pensionados()
-        datos=(Im38, fechaInicio, fechaDECorte,AEE,maxnumid,NumBolQued, Quedados_Pensionados)
+
+        datos=(importe_corte, inicio_corte, fechaDECorte, AEE, maxnumid, NumBolQued, Quedados_Pensionados)
         self.DB.GuarCorte(datos)
 
-        maxnum1=str(self.DB.Maxfolio_Cortes())
-        maxnum = "".join([x for x in maxnum1 if x.isdigit()])#con esto solo obtenemos los numeros
-        maxnum=int(maxnum)
-        maxnum=str(maxnum)
-        vobo = "cor"#este es para que la instruccion no marque error
-        ActEntradas = (maxnum, vobo )
-        self.label4.configure(text=("Numero de corte",maxnum))
+        numero_corte = self.DB.Maxfolio_Cortes()
+        #este es para que la instruccion no marque error
+        ActEntradas = (numero_corte, "cor")
+        self.label4.configure(text = f"Numero de corte {numero_corte}")
+
 
         printer = Usb(0x04b8, 0x0e15, 0)
 
         # printer.image(logo_1)
 
-        printer.text(f" Est {nombre_estacionamiento} CORTE Num "+maxnum+"\n")
-        printer.text('IMPORTE: $ '+Im38+'\n')
-        ultiCort1=str(self.FechUCORTE.get(),)
-        DDESEM=(datetime.today().weekday())
+        printer.text(f"Est {nombre_estacionamiento} CORTE Num {numero_corte}\n")
+        printer.text(f'IMPORTE: ${importe_corte}\n')
 
-        if DDESEM == 0:
-            DDESEM = 'LUNES'
-        if DDESEM == 1:
-            DDESEM = 'MARTES'
-        if DDESEM == 2:
-            DDESEM = 'MIERCOLES'
-        if DDESEM == 3:
-            DDESEM = 'JUEVES'
-        if DDESEM == 4:
-            DDESEM = 'VIERNES'
-        if DDESEM == 5:
-            DDESEM = 'SABADO'
-        if DDESEM == 6:
-            DDESEM = 'DOMINGO'
+        inicio_corte_fecha= datetime.strptime(self.FechUCORTE.get(), '%Y-%m-%d %H:%M:%S')
+        nombre_dia_inicio = self.get_day_name(inicio_corte_fecha.weekday())
+        inicio_corte_fecha = datetime.strftime(inicio_corte_fecha, '%d-%b-%Y a las %H:%M:%S')
+        printer.text(f'Inicio: {nombre_dia_inicio} {inicio_corte_fecha}\n')
 
-        ultiCort4= datetime.strptime(ultiCort1, '%Y-%m-%d %H:%M:%S')
-        ultiCort5 = datetime.strftime(ultiCort4, '%D a las %H:%M:%S')
-        printer.text('Inicio: ')
-        printer.text(str(DDESEM))
-        printer.text(' ')
-        printer.text(ultiCort5)
-        printer.text('\n')
-        valorFEsteCorte = str(self.FechaCorte.get(),)
-        fechaDECorte = datetime.strptime(valorFEsteCorte, '%Y-%m-%d %H:%M:%S' )
-        fechaDECorte = datetime.strftime(fechaDECorte, '%D a las %H:%M:%S' )
-        printer.text('Final :')
-        printer.text(str(DDESEM))
-        printer.text(' ') 
-        printer.text(str(fechaDECorte))
-        printer.text('\n')
-        MaxFolio=str(self.DB.MaxfolioEntrada())
-        MaxFolio = MaxFolio.strip("[(,)]")
-        BEDespuesCorteImpre = str(self.BEDespuesCorte.get(),)
-        BEDespuesCorteImpre = BEDespuesCorteImpre.strip("[(,)]")
-        IniFolio =int(MaxFolio)-int(BEDespuesCorteImpre)
-        IniFolio = str(IniFolio)
-        printer.text("Folio "+IniFolio+" al inicio del turno\n")
-        printer.text("Folio "+MaxFolio+" al final del turno\n") 
-        printer.text("Cajero en Turno: "+nombre2+"\n")
-        printer.text("Turno: "+str(turno1)+"\n")
-        dato =(inicio1)
-        inicios = self.DB.IniciosdeTurno(dato)
+
+        final_corte_fecha= datetime.strptime(self.FechaCorte.get(), '%Y-%m-%d %H:%M:%S')
+        nombre_dia_fin = self.get_day_name(final_corte_fecha.weekday())
+        final_corte_fecha = datetime.strftime(final_corte_fecha, "%d-%b-%Y a las %H:%M:%S")
+        printer.text(f'Final: {nombre_dia_fin} {final_corte_fecha}\n')
+
+        MaxFolio = self.DB.MaxfolioEntrada()
+        BEDespuesCorteImpre = self.BEDespuesCorte.get()
+        folio_inicio = int(MaxFolio)-int(BEDespuesCorteImpre)
+
+        printer.text(f"Folio {folio_inicio} al inicio del turno\n")
+        printer.text(f"Folio {MaxFolio} al final del turno\n") 
+        printer.text(f"Cajero en Turno: {nombre_cajero}\n")
+        printer.text(f"Turno: {turno_cajero}\n")
+
+        inicios = self.DB.IniciosdeTurno(inicio_corte)
         for fila in inicios:
             printer.text("Sesion "+fila[1]+": "+str(fila[0])+"\n")
 
-        BolCobrImpresion=str(self.BoletosCobrados.get(),)
-        printer.text("Boletos Cobrados: "+BolCobrImpresion+"\n")
+        BolCobrImpresion = self.BoletosCobrados.get()
+        printer.text(f"Boletos Cobrados: {BolCobrImpresion}\n")
+        printer.text(f'Boletos Expedidos: {BEDespuesCorteImpre}\n')
 
-        printer.text('Boletos Expedidos: '+BEDespuesCorteImpre+'\n')
-        BAnterioresImpr=str(self.BAnteriores.get(),)
-        printer.text("Boletos Turno Anterior: "+BAnterioresImpr+"\n")
-        AEE1 = self.DB.CuantosAutosdentro() 
-        for fila in AEE1:
-            AEE = fila[0]
-        BDentroImp = ((int(BAnterioresImpr) + int(BEDespuesCorteImpre))-(int(BolCobrImpresion)))    
-        #BDentroImp = (int(BolCobrImpresion)-(int(BAnterioresImpr) + int(BEDespuesCorteImpre)))   
-        #BDentroImp = (AEE + int(BEDespuesCorteImpre)) - int(BolCobrImpresion) #str(self.BDentro.get(),)
-        str(BDentroImp)
-        printer.text('Boletos dejados: '+str(BDentroImp)+'\n')
-        AutosEnEstacImpre = str(self.AutosEnEstacionamiento.get(),)
+        BAnterioresImpr = self.BAnteriores.get()
+        printer.text(f"Boletos Turno Anterior: {BAnterioresImpr}\n")
+
+        BDentroImp = (int(BAnterioresImpr) + int(BEDespuesCorteImpre))-(int(BolCobrImpresion))
+        printer.text(f'Boletos dejados: {BDentroImp}\n')
+
         printer.text('------------------------------')
         printer.text('\n')
 
         self.ImporteCorte.set("")
 
         self.DB.ActualizarEntradasConcorte(ActEntradas)
-        self.controlador_crud_pensionados.Actualizar_Entradas_Pension(maxnum)
-        vobo='ant'
-        self.DB.NocobradosAnt(vobo)
-        ponercorte =int(maxnum) 
-        #mb.showinfo("primero",ponercorte)
-        self.CortesAnteri.set(ponercorte)
-        #self.desglose_cobrados()
-        Numcorte=str(self.CortesAnteri.get(), )
-        Numcorte=int(Numcorte)
-        Numcorte=str(Numcorte)
+        self.controlador_crud_pensionados.Actualizar_Entradas_Pension(numero_corte)
+        self.DB.NocobradosAnt('ant')
+
+        self.corte_anterior.set(numero_corte)
+        Numcorte = self.corte_anterior.get()
 
         respuesta=self.DB.desglose_cobrados(Numcorte)
 
@@ -1518,11 +1594,11 @@ class FormularioOperacion:
 
         else:
             printer.text("\n")
-            printer.text(f"{BolCobrImpresion} Boletos        Suma total ${Im38}\n\n")    
+            printer.text(f"{BolCobrImpresion} Boletos        Suma total ${importe_corte}\n\n")    
 
         printer.text("----------------------------------\n")
 
-        desgloce_cancelados = self.DB.desgloce_cancelados(ponercorte)
+        desgloce_cancelados = self.DB.desgloce_cancelados(numero_corte)
         if len(desgloce_cancelados) > 0:
             printer.text("Boletos cancelados\n\n")
 
@@ -1530,9 +1606,9 @@ class FormularioOperacion:
                 printer.text(f"Folio:{boleto[0]} - Motivo: {boleto[1]}\n")
             printer.text("----------------------------------\n\n")
 
-        Entradas_Totales_Pensionados = self.controlador_crud_pensionados.get_Entradas_Totales_Pensionados(ponercorte)
-        Salidas_Pensionados = self.controlador_crud_pensionados.get_Salidas_Pensionados(ponercorte)
-        Anteriores_Pensionados = self.controlador_crud_pensionados.get_Anteriores_Pensionados(ponercorte-1)
+        Entradas_Totales_Pensionados = self.controlador_crud_pensionados.get_Entradas_Totales_Pensionados(numero_corte)
+        Salidas_Pensionados = self.controlador_crud_pensionados.get_Salidas_Pensionados(numero_corte)
+        Anteriores_Pensionados = self.controlador_crud_pensionados.get_Anteriores_Pensionados(numero_corte-1)
         
         quedados_totales = Quedados_Pensionados - Anteriores_Pensionados
 
@@ -1572,7 +1648,10 @@ class FormularioOperacion:
         # Si hay boletos perdidos generados, cobrados o no cobrados, se procede a imprimir el reporte
         if Boletos_perdidos_generados > 0 or Boletos_perdidos_cobrados > 0 or Boletos_perdidos_no_cobrados > 0:
             # Imprime el encabezado de la seccion de boletos perdidos
+
+            printer.set(align="center")
             printer.text("BOLETOS PERDIDOS"+'\n\n')
+            printer.set(align="left")
 
             # Imprime la cantidad de boletos perdidos generados y su desglose
             printer.text(f"Boletos perdidos generados: {Boletos_perdidos_generados + Boletos_perdidos_cobrados}" + '\n')
@@ -1603,7 +1682,9 @@ class FormularioOperacion:
 
         # Si hay pensionados en el corte, se procede a imprimir la seccion correspondiente
         if len(respuesta) > 0:
+            printer.set(align="center")
             printer.text("Cantidad e Importes Pensiones" + '\n')
+            printer.set(align="left")
             printer.text("Cuantos - Concepto - ImporteTotal " + '\n')
             for fila in respuesta:
                 printer.text(f"   {str(fila[0])}   -  {str(fila[1])}   -   ${str(fila[2])}\n")
@@ -1744,41 +1825,25 @@ class FormularioOperacion:
 
 
     def Puertoycontar(self):
-        
-        CuantosBoletosCobro=str(self.DB.CuantosBoletosCobro())
-        CuantosBoletosCobro = CuantosBoletosCobro.strip('(),')
-        self.BoletosCobrados.set(CuantosBoletosCobro)
-        MaxFolioCorte=str(self.DB.Maxfolio_Cortes())
-        BEDCorte=str(self.DB.BEDCorte())
-        BEDCorte = BEDCorte.strip('(),')
+
+        self.BoletosCobrados.set(self.DB.CuantosBoletosCobro())
+
+        MaxFolioCorte=self.DB.Maxfolio_Cortes()
+
+        # self.BEDespuesCorte.set(self.DB.BEDCorte()) # revisión pendiente
+        # self.BAnteriores.set(self.DB.BAnteriores()) # revisión pendiente
+
+        self.BAnteriores.set(self.DB.Quedados_Sensor(MaxFolioCorte))
+
+        maxNumidIni=self.DB.MaxnumId()
+        maxFolioEntradas= self.DB.MaxfolioEntrada()
+        BEDCorte = maxFolioEntradas - maxNumidIni
         self.BEDespuesCorte.set(BEDCorte)
-        BAnteriores=str(self.DB.BAnteriores())
-        BAnteriores = BAnteriores.strip('(),')
-        self.BAnteriores.set(BAnteriores)
-        MaxFolioCorte=MaxFolioCorte.strip('(),')
-        QuedadosBol=str(self.DB.Quedados_Sensor(MaxFolioCorte))
-        QuedadosBol=QuedadosBol.strip('(),')
-        self.BAnteriores.set(QuedadosBol)
-        maxNumidIni=str(self.DB.MaxnumId())
-        maxNumidIni = "".join([x for x in maxNumidIni if x.isdigit()])#con esto solo obtenemos los numeros
-        maxNumidIni=int(maxNumidIni)
-        maxFolioEntradas= str(self.DB.MaxfolioEntrada())
-        maxFolioEntradas = "".join([x for x in maxFolioEntradas if x.isdigit()])#con esto solo obtenemos los numero
-        maxFolioEntradas=int(maxFolioEntradas)
-        BEDCorte=maxFolioEntradas-maxNumidIni
-        BEDCorte=str(BEDCorte)
-        self.BEDespuesCorte.set(BEDCorte)
-        CuantosAutosdentro=str(self.DB.CuantosAutosdentro())
-        MaxFolioCorte=str(self.DB.Maxfolio_Cortes())
-        MaxFolioCorte=MaxFolioCorte.strip('(),')
-        dentroCorte=str(self.DB.Quedados_Sensor(MaxFolioCorte))
-        CuantosAutosdentro = CuantosAutosdentro.strip('(),')
-        dentroCorte = dentroCorte.strip('(),')
-        self.BDentro.set(CuantosAutosdentro)
-        self.Autos_Anteriores.set(dentroCorte)
-        #AutosAnteriores = int(self.Autos_Anteriores.get(),)
-        #Cuantos_hay_dentro = ((AutosAnteriores + EntradasSen) - SalidasSen)
-        #self.AutosEnEstacionamiento.set(Cuantos_hay_entro)
+
+        self.BDentro.set(self.DB.CuantosAutosdentro())
+
+        self.Autos_Anteriores.set(self.DB.Quedados_Sensor(MaxFolioCorte))
+
 
     ###################### Fin de Pagina2 Inicio Pagina3 ###############################
     def interface_pensionados(self):
@@ -1962,8 +2027,6 @@ class FormularioOperacion:
         self.ver_pensionados()
         self.PenAdentro()
 
-
-    
     def ConsulPagoPen(self):
         """Consulta la informacion de un pensionado y muestra los detalles del pago.
         
@@ -2080,8 +2143,6 @@ class FormularioOperacion:
             pago = (monto * nummes) + penalizacion_pension
 
         self.etiqueta_informacion_pago.configure(text=f"${pago}.00")
-
-
 
     def Cobro_Pensionado(self):
         """Realiza el cobro de la pension al pensionado y actualiza su informacion en la base de datos.
@@ -2227,7 +2288,6 @@ class FormularioOperacion:
             print(e)
             traceback.print_exc()
             mb.showwarning("Error", e)
-
 
     def PenAdentro(self):
         """Muestra en la interfaz gráfica la lista de pensionados que están adentro.
@@ -2441,10 +2501,6 @@ class FormularioOperacion:
         self.PonerFOLIO.set('')
 
 
-
-
-
-
     def desactivar(self):
         """Desactiva los botones de la interface"""
         self.root.withdraw()  # oculta la ventana
@@ -2453,21 +2509,17 @@ class FormularioOperacion:
         """ Activa los botones de la interface  """
         self.root.deiconify()
 
-
-
     def desactivar_botones(self):
         """Esta funcion deshabilita los botones que permiten agregar y modificar pensionados en la interfaz gráfica."""
         self.desactivar()
         self.boton_agregar_pensionado.configure(state='disabled')
         self.boton_modificar_pensionado.configure(state='disabled')
 
-
     def activar_botones(self):
         """Esta funcion habilita los botones que permiten agregar y modificar pensionados en la interfaz gráfica."""
         self.activar()
         self.boton_agregar_pensionado.configure(state='normal')
         self.boton_modificar_pensionado.configure(state='normal')
-
 
     def limpiar_campos(self):
         """Limpia los campos y reinicia los valores de los atributos relacionados con la interfaz gráfica.
@@ -2524,7 +2576,6 @@ class FormularioOperacion:
                 # Pasa los valores del registro como tupla
                 self.tabla.insert('', 'end', values=registro)
 
-
     def ver_pensionados(self):
         """
         Obtiene y muestra todos los pensionados en la tabla.
@@ -2534,7 +2585,6 @@ class FormularioOperacion:
         """
         self.registros = self.controlador_crud_pensionados.ver_pensionados()
         self.llenar_tabla(self.registros)
-
 
     def eliminar_pensionado(self):
         """Elimina el pensionado seleccionado."""
@@ -2570,7 +2620,6 @@ class FormularioOperacion:
         self.limpiar_datos_pago()
         self.ver_pensionados()
         self.activar_botones()
-
 
     def modificar_pensionado(self):
         """
@@ -2625,7 +2674,6 @@ class FormularioOperacion:
         self.ver_pensionados()
         self.activar_botones()
 
-
     def limpiar_datos_pago(self):
         """
         Limpia y reinicia los datos relacionados con el pago de pensiones en la interfaz gráfica.
@@ -2645,7 +2693,6 @@ class FormularioOperacion:
         self.vaciar_tipo_pago()
         self.ver_pensionados()
 
-
     def calcular_pago_media_pension(self, monto):
         """
         Calcula el pago de media pension para un pensionado según el monto de la pension.
@@ -2664,7 +2711,6 @@ class FormularioOperacion:
         pago = math.ceil((monto / dias_mes) * dias_faltantes)
 
         return pago
-
 
     def Pensionados(self, event):
         try:
@@ -2806,7 +2852,6 @@ class FormularioOperacion:
 
         return penalizacion, dias_atrasados
 
-
     def tarjetas_expiradas(self):
         """
         Muestra las tarjetas vencidas en una ventana aparte.
@@ -2820,7 +2865,6 @@ class FormularioOperacion:
             return
 
         self.mostrar_tabla_tarjetas_expiradas(tarjetas_expiradas)
-
 
     def mostrar_tabla_tarjetas_expiradas(self, datos):
         """
@@ -2912,7 +2956,6 @@ class FormularioOperacion:
         # Elevar la ventana secundaria al frente de todas las otras ventanas
         ventana.lift()
 
-
     def mostrar_importe(self, text_importe):
         """
         Muestra el importe en la interfaz gráfica.
@@ -2923,7 +2966,6 @@ class FormularioOperacion:
         """
         self.importe.set(text_importe)
         self.IImporte.config(text=self.importe.get())
-
 
     def get_date_limit(self, date_start:datetime, Tolerance:int) -> datetime:
         """
@@ -2959,6 +3001,7 @@ class FormularioOperacion:
 
         # Comprobar si la pestaña actual es la que se desea
         elif current_tab_index == 2:
+            self.entry_cortes_anteriores.focus()
             self.Calcular_Corte()
             self.Puertoycontar()
 
@@ -2966,6 +3009,11 @@ class FormularioOperacion:
         elif current_tab_index == 3:
             # Hacer focus en el widget deseado
             self.caja_texto_numero_tarjeta.focus_set()
+
+    def get_day_name(self, day_number:int):
+        days = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
+        return days[day_number]
+
 
 # aplicacion1=FormularioOperacion()
 

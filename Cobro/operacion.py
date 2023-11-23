@@ -100,7 +100,8 @@ class Operacion:
         sql="select count(*) from Entradas where CorteInc = 0 and Importe is null and Salida is null "
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
+
     def Quedados_Sensor(self, datos):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -108,7 +109,7 @@ class Operacion:
        #sql="select descripcion, precio from articulos where codigo=%s"
         cursor.execute(sql, datos)
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
 
     def NumBolQued(self, datos):
         cone=self.abrir()
@@ -118,6 +119,7 @@ class Operacion:
         cursor.execute(sql, datos)
         cone.close()
         return cursor.fetchall()
+
     def EntradasSensor(self):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -126,6 +128,7 @@ class Operacion:
         cursor.execute(sql)
         cone.close()
         return cursor.fetchall()
+
     def SalidasSensor(self):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -141,14 +144,15 @@ class Operacion:
         sql="select count(*) from Entradas where CorteInc = 0 and Importe is not null and Salida is not null "
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
+
     def BEDCorte(self):
         cone=self.abrir()
         cursor=cone.cursor()
         sql="select count(*) from Entradas where ((vobo is null and TarifaPreferente is null) or (vobo = 'lmf' and TarifaPreferente = ''))"
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
 
     def BAnteriores(self):
         cone=self.abrir()
@@ -156,7 +160,7 @@ class Operacion:
         sql="select count(*) from Entradas where vobo = 'ant' "
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
 
     def corte(self):
         cone=self.abrir()
@@ -164,14 +168,15 @@ class Operacion:
         sql="select COALESCE(sum(importe), 0) from Entradas where CorteInc = 0"
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
+
     def MaxfolioEntrada(self):
         cone=self.abrir()
         cursor=cone.cursor()
         sql="select max(id) from Entradas;"
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
 
     def Maxfolio_Cortes(self):
         cone=self.abrir()
@@ -179,7 +184,7 @@ class Operacion:
         sql="select max(Folio) from Cortes;"
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
 
     def ActualizarEntradasConcorte(self, maxnum):
         cone=self.abrir()
@@ -215,7 +220,7 @@ class Operacion:
         cursor.execute(sql)
         #cone.commit()
         cone.close()
-        return cursor.fetchall()
+        return cursor.fetchall()[0][0]
 
     def GuarCorte(self, datos):
         cone=self.abrir()
@@ -225,6 +230,7 @@ class Operacion:
         cursor.execute(sql,datos)
         cone.commit()
         cone.close()
+
     def UltimoCorte(self):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -232,8 +238,8 @@ class Operacion:
         #sql="select max(FechaFin) from Cortes;"
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()
-        
+        return cursor.fetchall()[0][0]
+
     def Cortes_MaxMin(self, datos):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -271,14 +277,16 @@ class Operacion:
         sql="SELECT Id_usuario, Contrasena, Nom_usuario FROM Usuarios WHERE Usuario = %s"
         cursor.execute(sql,datos)
         cone.close()
-        return cursor.fetchall() 
+        return cursor.fetchall()
+
     def CajeroenTurno(self):
         cone=self.abrir()
         cursor=cone.cursor()
         sql="SELECT min(id_movs), nombre, inicio, turno, Idusuario FROM MovsUsuarios where CierreCorte is null"
         cursor.execute(sql)
         cone.close()
-        return cursor.fetchall()   
+        return cursor.fetchall()
+
     def IniciosdeTurno(self, dato):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -286,6 +294,7 @@ class Operacion:
         cursor.execute(sql, dato)
         cone.close()
         return cursor.fetchall()
+
     def ActuaizaUsuario(self, actual):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -294,6 +303,7 @@ class Operacion:
         cursor.execute(sql,actual)
         cone.commit()
         cone.close()
+
     def Cierreusuario(self, datos):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -301,6 +311,7 @@ class Operacion:
         cursor.execute(sql,datos)
         cone.commit()
         cone.close()
+
     def NoAplicausuario(self, dato):
         cone=self.abrir()
         cursor=cone.cursor()
@@ -681,4 +692,41 @@ class Operacion:
         cursor.execute(sql,datos)
         cone.close()
         return cursor.fetchall()
+
+
+    def consultar_corte(self, corte:int):
+        cone=self.abrir()
+        cursor=cone.cursor()
+        sql=f"SELECT FechaIni, FechaFin, Importe, NumBolQued, idInicial FROM Cortes WHERE Folio = {corte}"
+        cursor.execute(sql)
+        cone.close()
+        return cursor.fetchall()
+
+    def consultar_información_corte(self, corte:int):
+        cone=self.abrir()
+        cursor=cone.cursor()
+        sql=f"SELECT nombre, turno FROM MovsUsuarios WHERE inicio BETWEEN (SELECT FechaIni from Cortes WHERE Folio = {corte}) AND (SELECT FechaFin from Cortes WHERE Folio = {corte})"
+        cursor.execute(sql)
+        cone.close()
+        return cursor.fetchall()
+
+    def Cuantos_Boletos_Cobro_Reimpresion(self, corte:int):
+        cone=self.abrir()
+        cursor=cone.cursor()
+        sql = f"SELECT count(*) from Entradas where CorteInc = {corte}"
+        cursor.execute(sql)
+        cone.close()
+        return cursor.fetchall()[0][0]
+
+    def boletos_expedidos_reimpresion(self, corte:int):
+        cone=self.abrir()
+        cursor=cone.cursor()
+        sql = f"SELECT COUNT(id) FROM Entradas WHERE Entrada BETWEEN (SELECT FechaIni from Cortes WHERE Folio = {corte}) AND (SELECT FechaFin from Cortes WHERE Folio = {corte})"
+        cursor.execute(sql)
+        cone.close()
+        return cursor.fetchall()[0][0]
+
+
+
+
 
