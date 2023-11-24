@@ -218,7 +218,7 @@ class SendEmail:
                 print(e)
                 return False
 
-def call_process() -> str:
+def send_data() -> str:
     """
     Envía la base de datos por correo electronico.
 
@@ -265,7 +265,7 @@ def main() -> None:
     """
     try: 
         # Ejecutar la funcion para enviar el correo electronico
-        message_info = call_process()
+        message_info = send_data()
 
         # Instanciar el objeto Usb para imprimir el resultado
         printer = Usb(0x04b8, 0x0e15, 0)

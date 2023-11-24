@@ -436,7 +436,7 @@ class Operacion:
         cursor.execute(sql)        
         cone.commit()
 
-        resultados = cursor.fetchall()
+        resultados = cursor.fetchall()[0][0]
 
         # Se cierra la conexión con la base de datos.
         cone.close()
@@ -467,7 +467,7 @@ class Operacion:
         sql = """SELECT COUNT(*) AS "BOLETOS PERDIDOS COBRADOS" FROM Entradas WHERE `Placas` = "BoletoPerdido" AND CorteInc = %s AND TarifaPreferente IS NOT NULL;"""
         cursor.execute(sql, Numcorte)        
         cone.commit()
-        resultados = cursor.fetchall()
+        resultados = cursor.fetchall()[0][0]
 
         # Se cierra la conexión con la base de datos.
         cone.close()
@@ -497,7 +497,7 @@ class Operacion:
         sql = """SELECT COUNT(*) AS "BOLETOS PERDIDOS NO COBRADOS" FROM Entradas WHERE `Placas` = "BoletoPerdido" AND CorteInc = 0 AND TarifaPreferente IS NULL;"""
         cursor.execute(sql)        
         cone.commit()
-        resultados = cursor.fetchall()
+        resultados = cursor.fetchall()[0][0]
 
         # Se cierra la conexión con la base de datos.
         cone.close()

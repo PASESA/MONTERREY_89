@@ -493,7 +493,7 @@ class FormularioOperacion:
         if Boleto_perdido == False:
             return
 
-        MaxFolio=str(self.DB.MaxfolioEntrada())
+        MaxFolio = self.DB.MaxfolioEntrada()
         folio_boleto = MaxFolio + 1
         self.MaxId.set(folio_boleto)
 
@@ -1536,146 +1536,239 @@ class FormularioOperacion:
 
         # printer.image(logo_1)
 
-        printer.text(f"Est {nombre_estacionamiento} CORTE Num {numero_corte}\n")
-        printer.text(f'IMPORTE: ${importe_corte}\n')
+        list_corte = []
+
+        txt = f"Est {nombre_estacionamiento} CORTE Num {numero_corte}\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f'IMPORTE: ${importe_corte}\n\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
         inicio_corte_fecha= datetime.strptime(self.FechUCORTE.get(), '%Y-%m-%d %H:%M:%S')
         nombre_dia_inicio = self.get_day_name(inicio_corte_fecha.weekday())
         inicio_corte_fecha = datetime.strftime(inicio_corte_fecha, '%d-%b-%Y a las %H:%M:%S')
-        printer.text(f'Inicio: {nombre_dia_inicio} {inicio_corte_fecha}\n')
-
+        txt = f'Inicio: {nombre_dia_inicio} {inicio_corte_fecha}\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
         final_corte_fecha= datetime.strptime(self.FechaCorte.get(), '%Y-%m-%d %H:%M:%S')
         nombre_dia_fin = self.get_day_name(final_corte_fecha.weekday())
         final_corte_fecha = datetime.strftime(final_corte_fecha, "%d-%b-%Y a las %H:%M:%S")
-        printer.text(f'Final: {nombre_dia_fin} {final_corte_fecha}\n')
+        txt = f'Final: {nombre_dia_fin} {final_corte_fecha}\n\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
         MaxFolio = self.DB.MaxfolioEntrada()
         BEDespuesCorteImpre = self.BEDespuesCorte.get()
         folio_inicio = int(MaxFolio)-int(BEDespuesCorteImpre)
 
-        printer.text(f"Folio {folio_inicio} al inicio del turno\n")
-        printer.text(f"Folio {MaxFolio} al final del turno\n") 
-        printer.text(f"Cajero en Turno: {nombre_cajero}\n")
-        printer.text(f"Turno: {turno_cajero}\n")
+        txt = f"Folio {folio_inicio} al inicio del turno\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f"Folio {MaxFolio} al final del turno\n\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f"Cajero en Turno: {nombre_cajero}\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f"Turno: {turno_cajero}\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
         inicios = self.DB.IniciosdeTurno(inicio_corte)
         for fila in inicios:
-            printer.text("Sesion "+fila[1]+": "+str(fila[0])+"\n")
+            txt = '------------------------------\n'
+            printer.text(txt)
+            list_corte.append(txt)
+            
+            txt = "Sesion "+fila[1]+": "+str(fila[0])+"\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
+            txt = "----------------------------------\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         BolCobrImpresion = self.BoletosCobrados.get()
-        printer.text(f"Boletos Cobrados: {BolCobrImpresion}\n")
-        printer.text(f'Boletos Expedidos: {BEDespuesCorteImpre}\n')
+        txt = f"Boletos Cobrados: {BolCobrImpresion}\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f'Boletos Expedidos: {BEDespuesCorteImpre}\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
         BAnterioresImpr = self.BAnteriores.get()
-        printer.text(f"Boletos Turno Anterior: {BAnterioresImpr}\n")
+        txt = f"Boletos Turno Anterior: {BAnterioresImpr}\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
         BDentroImp = (int(BAnterioresImpr) + int(BEDespuesCorteImpre))-(int(BolCobrImpresion))
-        printer.text(f'Boletos dejados: {BDentroImp}\n')
+        txt = f'Boletos dejados: {BDentroImp}\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
-        printer.text('------------------------------')
-        printer.text('\n')
+        txt = '------------------------------\n\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
         self.ImporteCorte.set("")
-
         self.DB.ActualizarEntradasConcorte(ActEntradas)
         self.controlador_crud_pensionados.Actualizar_Entradas_Pension(numero_corte)
         self.DB.NocobradosAnt('ant')
 
         self.corte_anterior.set(numero_corte)
         Numcorte = self.corte_anterior.get()
-
         respuesta=self.DB.desglose_cobrados(Numcorte)
 
-        printer.text("Cantidad e Importes "+'\n')
-        printer.text("Cantidad - Tarifa - valor C/U - Total "+'\n')
+        printer.set(align="center")
+        txt = "Cantidad e Importes\n\n"
+        printer.text(txt)
+        list_corte.append(txt)
+        printer.set(align="left")
+
+        txt = "Cantidad - Tarifa - valor C/U - Total \n"
+        printer.text(txt)
+        list_corte.append(txt)
+
         for fila in respuesta:
-            printer.text(f"  {str(fila[0])}  -  {str(fila[1])}  -  ${str(fila[2])}   -  ${str(fila[3])}\n")
+            txt = f"  {str(fila[0])}  -  {str(fila[1])}  -  ${str(fila[2])}   -  ${str(fila[3])}\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         else:
-            printer.text("\n")
-            printer.text(f"{BolCobrImpresion} Boletos        Suma total ${importe_corte}\n\n")    
+            txt = f"{BolCobrImpresion} Boletos        Suma total ${importe_corte}\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
-        printer.text("----------------------------------\n")
+        txt = "----------------------------------\n\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
         desgloce_cancelados = self.DB.desgloce_cancelados(numero_corte)
         if len(desgloce_cancelados) > 0:
-            printer.text("Boletos cancelados\n\n")
+            txt = "Boletos cancelados\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
             for boleto in desgloce_cancelados:
-                printer.text(f"Folio:{boleto[0]} - Motivo: {boleto[1]}\n")
-            printer.text("----------------------------------\n\n")
+                txt = f"Folio:{boleto[0]} - Motivo: {boleto[1]}\n"
+                printer.text(txt)
+                list_corte.append(txt)
+
+            txt = "----------------------------------\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         Entradas_Totales_Pensionados = self.controlador_crud_pensionados.get_Entradas_Totales_Pensionados(numero_corte)
         Salidas_Pensionados = self.controlador_crud_pensionados.get_Salidas_Pensionados(numero_corte)
         Anteriores_Pensionados = self.controlador_crud_pensionados.get_Anteriores_Pensionados(numero_corte-1)
         
         quedados_totales = Quedados_Pensionados - Anteriores_Pensionados
-
         Quedados = 0 if quedados_totales < 0 else quedados_totales
-
         if Entradas_Totales_Pensionados > 0 or Salidas_Pensionados > 0 or Quedados_Pensionados > 0:
 
             printer.set(align="center")
-            printer.text("Entradas de pensionados\n\n")
+            txt = "Entradas de pensionados\n"
+            printer.text(txt)
+            list_corte.append(txt)
             printer.set(align="left")
 
-            printer.text(f"Anteriores: {Anteriores_Pensionados}\n")
-            printer.text(f"Entradas: {Entradas_Totales_Pensionados}\n")
-            printer.text(f"Salidas: {Salidas_Pensionados}\n")
-            printer.text(f"Quedados: {Quedados}\n")
+            txt = f"Anteriores: {Anteriores_Pensionados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
-            printer.text("----------------------------------\n\n")
+            txt = f"Entradas: {Entradas_Totales_Pensionados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
+            txt = f"Salidas: {Salidas_Pensionados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
+            txt = f"Quedados: {Quedados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
+            txt = "----------------------------------\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         # Obtiene la cantidad de boletos perdidos generados
         Boletos_perdidos_generados = self.DB.Boletos_perdidos_generados()
-        Boletos_perdidos_generados = Boletos_perdidos_generados[0][0]
-
         # Obtiene el desglose de los boletos perdidos generados
         Boletos_perdidos_generados_desglose = self.DB.Boletos_perdidos_generados_desglose()
-
         # Obtiene la cantidad de boletos perdidos cobrados
         Boletos_perdidos_cobrados = self.DB.Boletos_perdidos_cobrados(Numcorte)
-        Boletos_perdidos_cobrados = Boletos_perdidos_cobrados[0][0]
-
         # Obtiene el desglose de los boletos perdidos cobrados
         Boletos_perdidos_cobrados_desglose = self.DB.Boletos_perdidos_cobrados_desglose(Numcorte)
-
         # Obtiene la cantidad de boletos perdidos no cobrados
         Boletos_perdidos_no_cobrados = self.DB.Boletos_perdidos_no_cobrados()
-        Boletos_perdidos_no_cobrados = Boletos_perdidos_no_cobrados[0][0]
 
         # Si hay boletos perdidos generados, cobrados o no cobrados, se procede a imprimir el reporte
         if Boletos_perdidos_generados > 0 or Boletos_perdidos_cobrados > 0 or Boletos_perdidos_no_cobrados > 0:
             # Imprime el encabezado de la seccion de boletos perdidos
 
             printer.set(align="center")
-            printer.text("BOLETOS PERDIDOS"+'\n\n')
+            txt = "BOLETOS PERDIDOS"+'\n'
+            printer.text(txt)
+            list_corte.append(txt)
             printer.set(align="left")
 
             # Imprime la cantidad de boletos perdidos generados y su desglose
-            printer.text(f"Boletos perdidos generados: {Boletos_perdidos_generados + Boletos_perdidos_cobrados}" + '\n')
+            txt = f"Boletos perdidos generados: {Boletos_perdidos_generados + Boletos_perdidos_cobrados}" + '\n'
+            printer.text(txt)
+            list_corte.append(txt)
+
             for boleto in Boletos_perdidos_cobrados_desglose:
-                printer.text(f"Folio:{boleto[0]}\nFecha entrada:{boleto[1]}\n")
+                txt = f"Folio:{boleto[0]}\nFecha entrada:{boleto[1]}\n"
+                printer.text(txt)
+                list_corte.append(txt)
+
             for boleto in Boletos_perdidos_generados_desglose:
-                printer.text(f"Folio:{boleto[0]}\nFecha entrada:{boleto[1]}\n")
+                txt = f"Folio:{boleto[0]}\nFecha entrada:{boleto[1]}\n"
+                printer.text(txt)
+                list_corte.append(txt)
+
 
             # Imprime separador
-            printer.text("**********************************\n")
+            txt = "**********************************\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
             # Imprime la cantidad de boletos perdidos cobrados y su desglose
-            printer.text(f"Boletos perdidos cobrados: {Boletos_perdidos_cobrados}" + '\n\n')
+            txt = f"Boletos perdidos cobrados: {Boletos_perdidos_cobrados}" + '\n\n'
+            printer.text(txt)
+            list_corte.append(txt)
+
             for boleto in Boletos_perdidos_cobrados_desglose:
-                printer.text(f"Folio:{boleto[0]}\nFecha entrada:{boleto[1]}\nFecha salida:{boleto[2]}\n")
-            printer.text("**********************************\n")
+                txt = f"Folio:{boleto[0]}\nFecha entrada:{boleto[1]}\nFecha salida:{boleto[2]}\n"
+                printer.text(txt)
+                list_corte.append(txt)
+
+            txt = "**********************************\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
             # Imprime la cantidad de boletos perdidos no cobrados y su desglose
-            printer.text(f"Boletos perdidos quedados: {Boletos_perdidos_no_cobrados}" + '\n\n')
+            txt = f"Boletos perdidos quedados: {Boletos_perdidos_no_cobrados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
             for boleto in Boletos_perdidos_generados_desglose:
-                printer.text(f"Folio:{boleto[0]}\nFecha entrada:{boleto[1]}\n")
+                txt = f"Folio:{boleto[0]}\nFecha entrada:{boleto[1]}\n"
+                printer.text(txt)
+                list_corte.append(txt)
 
             # Imprime separador
-            printer.text("----------------------------------\n")
+            txt = "----------------------------------\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         # Obtiene la cantidad e importes de las pensiones para el corte actual
         respuesta = self.DB.total_pensionados_corte(Numcorte)
@@ -1683,20 +1776,39 @@ class FormularioOperacion:
         # Si hay pensionados en el corte, se procede a imprimir la seccion correspondiente
         if len(respuesta) > 0:
             printer.set(align="center")
-            printer.text("Cantidad e Importes Pensiones" + '\n')
+            txt = "Cantidad e Importes Pensiones\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
             printer.set(align="left")
-            printer.text("Cuantos - Concepto - ImporteTotal " + '\n')
+            txt = "Cuantos - Concepto - ImporteTotal \n"
+            printer.text(txt)
+            list_corte.append(txt)
+
             for fila in respuesta:
-                printer.text(f"   {str(fila[0])}   -  {str(fila[1])}   -   ${str(fila[2])}\n")
+                txt = f"   {str(fila[0])}   -  {str(fila[1])}   -   ${str(fila[2])}\n"
+                printer.text(txt)
+                list_corte.append(txt)
+
             else:
-                printer.text("----------------------------------\n")
+                txt = f"----------------------------------\n"
+                printer.text(txt)
+                list_corte.append(txt)
 
         # Imprime ultimo separador
-        printer.text("----------------------------------\n")
+        txt = "----------------------------------\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
         # Corta el papel
         printer.cut()
         printer.close()
+
+        txt_file_corte = f"../Cortes/{nombre_estacionamiento.replace(' ', '_')}_Corte_N°_{numero_corte}.txt"
+
+        with open(file=txt_file_corte, mode="w") as file:
+            file.writelines(list_corte)
+            file.close()
 
         # Cierra el programa al final del reporte
         self.Cerrar_Programa()
@@ -1704,8 +1816,6 @@ class FormularioOperacion:
 
     def Cerrar_Programa(self):
         self.root.destroy()
-
-
 
     def Reporte_Corte(self):
         contrasena = simpledialog.askinteger("Contrasena", "Capture su Contrasena:", parent=self.labelframe4) # minvalue=8, maxvalue=8
@@ -3013,6 +3123,9 @@ class FormularioOperacion:
     def get_day_name(self, day_number:int):
         days = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
         return days[day_number]
+
+    def add_to_text_file(self, txt_file):
+        pass
 
 
 # aplicacion1=FormularioOperacion()
