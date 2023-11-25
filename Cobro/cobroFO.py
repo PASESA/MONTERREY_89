@@ -1510,8 +1510,7 @@ class FormularioOperacion:
         datos=(fecha_hoy, id_cajero)
         self.DB.Cierreusuario(datos)
 
-        dato=(id_cajero)
-        self.DB.NoAplicausuario(dato)
+        self.DB.NoAplicausuario(id_cajero)
 
         ##la fecha final de este corte que es la actual
         fechaDECorte = self.FechaCorte.get()
@@ -1580,16 +1579,16 @@ class FormularioOperacion:
         printer.text(txt)
         list_corte.append(txt)
 
+        txt = '------------------------------\n'
+        printer.text(txt)
+        list_corte.append(txt)
+
         inicios = self.DB.IniciosdeTurno(inicio_corte)
         for fila in inicios:
-            txt = '------------------------------\n'
-            printer.text(txt)
-            list_corte.append(txt)
-            
             txt = "Sesion "+fila[1]+": "+str(fila[0])+"\n"
             printer.text(txt)
             list_corte.append(txt)
-
+        else:
             txt = "----------------------------------\n\n"
             printer.text(txt)
             list_corte.append(txt)

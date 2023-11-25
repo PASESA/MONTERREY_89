@@ -6,11 +6,18 @@ from email.mime.application import MIMEApplication
 from escpos.printer import Usb
 from zipfile import ZipFile, ZIP_DEFLATED
 from subprocess import run, CalledProcessError
-from os import path, getcwd, remove
+from os import path, getcwd, remove, listdir
 from requests import get
 from requests.exceptions import RequestException
 from operacion import Operacion
 
+# Nombre del estacionamiento
+nombre_estacionamiento = 'Monterrey_89'
+
+# Datos de acceso a la cuenta de correo
+username = 'monterrey89@pasesa.com.mx'
+password = '#Monterrey89'
+EMAIL = "enviocorreospasesa@outlook.com"
 
 class ToolsEmail:
     """Clase que proporciona herramientas relacionadas con el correo electronico y archivos."""
@@ -40,27 +47,50 @@ class ToolsEmail:
             print("No se pudo establecer conexion a Internet.")
             return False
 
-    def compress_file_to_zip(self, source_file: str, output_filename: str = None) -> str or None:
-        """Comprime un archivo en un archivo ZIP.
+    def compress_to_zip(self, source: str, output_filename: str = None, is_dir: bool = False) -> str or None:
+        """Comprime un archivo o directorio en un archivo ZIP.
 
         Args:
-            source_file (str): Ruta al archivo que se comprimirá.
-            output_filename (str): Nombre del archivo ZIP de salida. Si no se proporciona, se usará el nombre del archivo fuente con extension ".zip".
+            source (str): Ruta al archivo o directorio que se comprimirá.
+            output_filename (str): Nombre del archivo ZIP de salida. Si no se proporciona, se usará el nombre del archivo fuente con extensión ".zip".
 
         Returns:
-            str or None: Ruta absoluta del archivo ZIP si la compresion es exitosa, None si hay algún error.
+            str or None: Ruta absoluta del archivo ZIP si la compresión es exitosa, None si hay algún error.
         """
+
         try:
-            if output_filename is None:
-                # Si no se proporciona un nombre de archivo de salida, usamos el nombre del archivo fuente con extension ".zip"
-                output_filename = source_file + '.zip'
+            if is_dir:
+                position_number = len(f"{nombre_estacionamiento}_Corte_N°_")
+                files = listdir(source)
+                for id, file in enumerate(files):
+                    _, ext = path.splitext(file)
+                    if ext.lower() != ".txt":
+                        files.remove(file)
+
+
+                first_number = files[0][position_number:-4]
+                last_number = files[len(files)-1][position_number:-4]
+
+                numbers = f"Cortes {first_number} a {last_number}" if first_number != last_number else f"Corte {first_number}"
+                output_filename = f"{source[:-6]+numbers}.zip".replace(" ", "_")
+            else:
+                # Si no se proporciona un nombre de archivo de salida, usamos el nombre del archivo fuente con extensión ".zip"
+                output_filename = output_filename or f"{source}.zip"
+
 
             with ZipFile(output_filename, 'w', ZIP_DEFLATED) as zipf:
-                arcname = path.basename(source_file)
-                zipf.write(source_file, arcname)
-                absolute_path_zip = path.abspath(output_filename)
-                print("Archivo comprimido correctamente")
-                return absolute_path_zip
+                if is_dir:
+                    for file in files:
+                        file_path = path.join(source, file)
+                        # Agregar archivos del directorio al ZIP con su ruta relativa
+                        zipf.write(file_path, arcname=path.relpath(file_path, source))
+                else:
+                    # Agregar archivo al ZIP con su nombre base
+                    arcname = path.basename(source)
+                    zipf.write(source, arcname)
+
+            print("Archivo comprimido correctamente")
+            return path.abspath(output_filename)
 
         except Exception as e:
             print(f'Error al comprimir el archivo: {e}')
@@ -187,7 +217,7 @@ class SendEmail:
 
                 msg.attach(MIMEText(message, 'plain'))
 
-                zip_file = self.tools.compress_file_to_zip(file)
+                zip_file = self.tools.compress_to_zip(file)
                 self.tools.remove_file(file)
 
                 if zip_file is None:
@@ -225,13 +255,6 @@ def send_data() -> str:
     Returns:
         str: Mensaje informativo sobre el resultado del envío del correo.
     """
-    # Nombre del estacionamiento
-    nombre_estacionamiento = 'MONTERREY_89'
-
-    # Datos de acceso a la cuenta de correo
-    username = 'monterrey89@pasesa.com.mx'
-    password = '#Monterrey89'
-    EMAIL = "enviocorreospasesa@outlook.com"
 
     # Inicializar herramientas de correo electronico y envío
     tools = ToolsEmail()
@@ -285,12 +308,12 @@ def main() -> None:
     except Exception as e:
         print(e)
 
+# a = ToolsEmail().compress_to_zip(source=path.abspath("./Cortes"), is_dir=True)
 
-
-if __name__ == "__main__":
-    """
-    Punto de entrada principal del programa.
-    """
-    # Ejecutar la funcion principal
-    main()
+# if __name__ == "__main__":
+#     """
+#     Punto de entrada principal del programa.
+#     """
+#     # Ejecutar la funcion principal
+#     main()
 
