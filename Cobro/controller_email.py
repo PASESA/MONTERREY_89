@@ -11,13 +11,18 @@ from requests import get
 from requests.exceptions import RequestException
 from operacion import Operacion
 
+dir_cortes = "../Cortes"
+
 # Nombre del estacionamiento
-nombre_estacionamiento = 'Monterrey_89'
+nombre_estacionamiento = 'Monterrey 89'.replace(" ", "_")
 
 # Datos de acceso a la cuenta de correo
 username = 'monterrey89@pasesa.com.mx'
 password = '#Monterrey89'
-EMAIL = "enviocorreospasesa@outlook.com"
+
+# Correos para enviar la informacion
+EMAIL_send_database = "enviocorreospasesa@outlook.com"
+EMAIL_send_corte = "ingresos@pasesa.com.mx"
 
 class ToolsEmail:
     """Clase que proporciona herramientas relacionadas con el correo electronico y archivos."""
@@ -190,15 +195,14 @@ class SendEmail:
 
         self.tools = ToolsEmail()
 
-    def send_mail(self, to_email: str, subject: str, message: str, file: str) -> bool:
+    def send_mail(self, to_email: str, subject: str, message: str, zip_file: str) -> bool:
         """Envía un correo electronico con un archivo adjunto.
 
         Args:
             to_email (str): La direccion de correo electronico del destinatario.
             subject (str): El asunto del correo electronico.
             message (str): El contenido del correo electronico.
-            file (str): Ruta al archivo que se adjuntará al correo.
-
+            zip_file (str): Ruta al archivo que se adjuntará al correo.
         Returns:
             bool: True si el correo se envía exitosamente, False si hay algún error.
         """
@@ -207,58 +211,54 @@ class SendEmail:
         # Verificar la conexion a Internet antes de intentar enviar el correo
         if not self.tools.check_internet_connection():
             return False
-        else:
-            try:
-                # Crea la estructura del correo
-                msg = MIMEMultipart()
-                msg['From'] = from_email
-                msg['To'] = to_email
-                msg['Subject'] = subject
 
-                msg.attach(MIMEText(message, 'plain'))
+        try:
+            # Crea la estructura del correo
+            msg = MIMEMultipart()
+            msg['From'] = from_email
+            msg['To'] = to_email
+            msg['Subject'] = subject
 
-                zip_file = self.tools.compress_to_zip(file)
-                self.tools.remove_file(file)
+            msg.attach(MIMEText(message, 'plain'))
 
-                if zip_file is None:
-                    return False
+            # Adjuntar el archivo al correo
+            with open(zip_file, 'rb') as f:
+                attached_file = MIMEApplication(f.read(), _subtype="zip")
+                filename = path.basename(zip_file)
+                print(filename)
+                attached_file.add_header('content-disposition', 'attachment', filename=filename)
+                msg.attach(attached_file)
 
-                # Adjuntar el archivo al correo
-                with open(zip_file, 'rb') as f:
-                    attached_file = MIMEApplication(f.read(), _subtype="zip")
-                    attached_file.add_header('content-disposition', 'attachment', filename=f'{self.estacionamiento}_DB.zip')
-                    msg.attach(attached_file)
+            # Conectar al servidor SMTP y enviar el correo
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                # Iniciar la conexion segura TLS
+                server.starttls()
+                # Inicio de sesion
+                server.login(self.username, self.password)
+                # Enviar correo
+                server.sendmail(from_email, to_email, msg.as_string())
+                # Terminar la sesion
+                server.quit()
 
-                # Conectar al servidor SMTP y enviar el correo
-                with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                    # Iniciar la conexion segura TLS
-                    server.starttls()
-                    # Inicio de sesion
-                    server.login(self.username, self.password)
-                    # Enviar correo
-                    server.sendmail(from_email, to_email, msg.as_string())
-                    # Terminar la sesion
-                    server.quit()
+            print('Correo enviado exitosamente')
+            return True
 
-                print('Correo enviado exitosamente.')
-                self.tools.remove_file(zip_file)
-                return True
+        except Exception as e:
+            print(e)
+            return False
 
-            except Exception as e:
-                print(e)
-                return False
+# Inicializar herramientas de correo electronico y envío
+tools = ToolsEmail()
 
-def send_data() -> str:
+def send_database() -> str:
     """
-    Envía la base de datos por correo electronico.
+    Envía el corte por correo electronico.
 
     Returns:
         str: Mensaje informativo sobre el resultado del envío del correo.
     """
 
-    # Inicializar herramientas de correo electronico y envío
-    tools = ToolsEmail()
-    email = SendEmail(
+    email_database = SendEmail(
         username=username, 
         password=password, 
         estacionamiento=nombre_estacionamiento)
@@ -270,16 +270,61 @@ def send_data() -> str:
     if db_file is None:
         return "Error: No se pudo generar el respaldo de la base de datos\n"
 
+    zip_file = tools.compress_to_zip(db_file)
+    tools.remove_file(db_file)
+
     # Crear el asunto y mensaje del correo
     hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     subject = f"[{nombre_estacionamiento}][{hora}] Envio de Base de datos"
-    message = f"Base de datos del estacionamiento {nombre_estacionamiento}."
+    message = f"Base de datos del estacionamiento: {nombre_estacionamiento}."
 
     # Enviar el correo y manejar el resultado
-    if email.send_mail(to_email=EMAIL, subject=subject, message=message, file=db_file):
-        return "Base de datos enviada exitosamente.\n"
-    else:
-        return "Error: No se pudo enviar la base de datos por correo electronico.\n"
+    if email_database.send_mail(to_email=EMAIL_send_database, subject=subject, message=message, zip_file=zip_file):
+        tools.remove_file(zip_file)
+        return "Base de datos enviada exitosamente\n"
+
+    tools.remove_file(zip_file)
+    return "Error: No se pudo enviar la base de datos\n"
+
+def send_corte() -> str:
+    """
+    Envía la base de datos por correo electronico.
+
+    Returns:
+        str: Mensaje informativo sobre el resultado del envío del correo.
+    """
+    dir_path = path.abspath(dir_cortes)
+    files = listdir(dir_path)
+    if len(files) == 0: return "No hay cortes para enviar\n"
+
+
+    # Inicializar herramientas de correo electronico y envío
+    email_corte = SendEmail(
+        username=username, 
+        password=password, 
+        estacionamiento=nombre_estacionamiento)
+
+    zip_file = tools.compress_to_zip(source=dir_path, is_dir=True)
+
+    # Crear el asunto y mensaje del correo
+    hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    subject = f"[{nombre_estacionamiento}]-[{hora}] Envio de {path.basename(zip_file).replace('_', ' ')[:-4]}"
+    message = f"Corte del estacionamiento: {nombre_estacionamiento}."
+
+    # Enviar el correo y manejar el resultado
+    if email_corte.send_mail(to_email=EMAIL_send_corte, subject=subject, message=message, zip_file=zip_file):
+        tools.remove_file(zip_file)
+
+        for id, file in enumerate(files):
+            file_path = path.join(dir_path, file)
+            _, ext = path.splitext(file)
+            if ext.lower() == ".txt":
+                tools.remove_file(file_path)
+
+        return "Corte enviado exitosamente\n"
+
+    tools.remove_file(zip_file)
+    return "Error: No se pudo enviar el corte\n"
 
 
 def main() -> None:
@@ -287,8 +332,9 @@ def main() -> None:
     Funcion principal del programa para enviar la base de datos por correo electronico y mostrar el resultado.
     """
     try: 
-        # Ejecutar la funcion para enviar el correo electronico
-        message_info = send_data()
+        # Ejecutar la funcion para enviar los correos electronicos
+        message_send_database = send_database()
+        message_send_corte = send_corte()
 
         # Instanciar el objeto Usb para imprimir el resultado
         printer = Usb(0x04b8, 0x0e15, 0)
@@ -298,22 +344,15 @@ def main() -> None:
 
         # Imprimir separadores y mensaje de resultado en la consola
         printer.text("-" * 30 + "\n")
-        printer.text(f"{message_info}\n")
+        printer.text(f"{message_send_database}\n")
+        printer.text(f"{message_send_corte}\n")
         printer.text("-" * 30 + "\n")
         printer.cut()
         printer.close()
 
-        # Imprimir el mensaje en la consola
-        print(message_info)
+        # # Imprimir el mensaje en la consola
+        # print(message_send_database)
+        # print(message_send_corte)
     except Exception as e:
         print(e)
-
-# a = ToolsEmail().compress_to_zip(source=path.abspath("./Cortes"), is_dir=True)
-
-# if __name__ == "__main__":
-#     """
-#     Punto de entrada principal del programa.
-#     """
-#     # Ejecutar la funcion principal
-#     main()
 

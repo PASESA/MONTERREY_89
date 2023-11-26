@@ -57,7 +57,7 @@ button_letters_color = "white"
 from controller_email import main
 
 show_clock = False
-send_data = False
+send_data = True
 pantalla_completa = False
 
 class FormularioOperacion:
@@ -1673,7 +1673,7 @@ class FormularioOperacion:
         if Entradas_Totales_Pensionados > 0 or Salidas_Pensionados > 0 or Quedados_Pensionados > 0:
 
             printer.set(align="center")
-            txt = "Entradas de pensionados\n"
+            txt = "Entradas de pensionados\n\n"
             printer.text(txt)
             list_corte.append(txt)
             printer.set(align="left")
@@ -1775,7 +1775,7 @@ class FormularioOperacion:
         # Si hay pensionados en el corte, se procede a imprimir la seccion correspondiente
         if len(respuesta) > 0:
             printer.set(align="center")
-            txt = "Cantidad e Importes Pensiones\n"
+            txt = "Cantidad e Importes Pensiones\n\n"
             printer.text(txt)
             list_corte.append(txt)
 
