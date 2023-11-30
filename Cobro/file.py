@@ -26,7 +26,7 @@ class View_image:
         self.opciones_corte = self.DB.obtener_lista_de('Cortes', 'Folio', 'D')
 
         # Crea la ventana principal
-        self.window = tk.Toplevel()
+        self.window = tk.Tk()#tk.Toplevel()
 
         # Establece el tamaño de la ventana y su título
         self.window.title(f'Cargar imagen')
@@ -82,7 +82,7 @@ class View_image:
 
         # Cargar la imagen con PIL
         image = Image.open(self.file_to_send)
-        image = image.resize((image.width // 3, image.height // 3), Image.ANTIALIAS)  # Cambiar tamaño de la imagen
+        image = image.resize((image.width // 3, image.height // 3), Image.Resampling.LANCZOS)  # Cambiar tamaño de la imagen
         image = ImageTk.PhotoImage(image)
 
         # Configurar la imagen en el Label

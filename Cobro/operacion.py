@@ -727,6 +727,31 @@ class Operacion:
         return cursor.fetchall()[0][0]
 
 
+    def obtener_lista_de(self, tabla: str, listar: str, revez: str = None) -> tuple:
+        """
+        Devuelve una lista con los valores únicos de la columna especificada de la tabla 'Entradas' de la base de datos.
+        :param tabla (str): Nombre de la tabla de la que se quiere hacer la consulta.
+        :param listar (str): Nombre de la columna de la tabla de la que se quieren obtener los valores únicos.
+        :param revez: (str or None) Si se especifica 'D', devuelve los valores en orden descendente;
+            si se especifica 'A', los devuelve en orden ascendente; si no se especifica, los devuelve en el orden en que se encuentran en la tabla.
+        :return:
+            - lista_sin_nones (list): Una lista con los valores únicos de la columna especificada de la tabla 'Entradas',
+                sin incluir valores 'None'.
+        """
+        cone=self.abrir()
+        cursor=cone.cursor()
 
+        # Si revez es igual a 'D', la consulta se hace en orden descendente.
+        if revez == 'D': 
+            query = f"SELECT DISTINCT {listar} FROM {tabla} ORDER BY {listar} DESC;"
+        # Si revez es igual a 'A', la consulta se hace en orden ascendente.
+        elif revez == 'A': 
+            query = f"SELECT DISTINCT {listar} FROM {tabla} ORDER BY {listar} ASC;"
+        # Si revez no está definido, se realiza una consulta simple.
+        if revez == None: 
+            query = f"SELECT DISTINCT {listar} FROM {tabla};" 
 
+        cursor.execute(query)
+        cone.close()
+        return cursor.fetchall()
 

@@ -26,7 +26,13 @@ import math
 from atexit import register
 from reloj import RelojAnalogico
 from time import sleep
-from controller_email import main
+from controller_email import main, send_other_corte
+
+from threading import Thread
+from os import path, listdir
+from controller_email import ToolsEmail
+tools = ToolsEmail()
+
 ###--###
 data_rinter = (0x04b8, 0x0e15, 0)
 
@@ -802,7 +808,7 @@ class FormularioOperacion:
                 # Imprimir el logo si está habilitado
                 printer.image(logo_1)
                 print("Imprime logo")
-            
+
             printer.set(align="left")
             printer.text("El importe es: $" + Importe + "\n")
             printer.text('El auto entro: ' + Entrada + '\n')
@@ -812,6 +818,7 @@ class FormularioOperacion:
             printer.text('TIPO DE COBRO: ' + TarifaPreferente + '\n')
 
             if QR_salida:
+                self.DB.generar_QR(f"{Entrada}{Folio}")
                 # Imprimir el codigo QR de salida si está habilitado
                 printer.set(align="center")
                 printer.image(qr_imagen)
@@ -1213,70 +1220,126 @@ class FormularioOperacion:
 
         printer = Usb(0x04b8, 0x0e15, 0)
 
+        list_corte = []
+
         printer.set(align="center")
-        printer.text(F"REIMPRESION DEL CORTE {numero_corte}"+'\n')
+        txt = f"REIMPRESION DEL CORTE {numero_corte}\n"
+        printer.text(txt)
+        list_corte.append(txt)
         printer.set(align="left")
 
-        printer.text(f"Est {nombre_estacionamiento} CORTE Num {numero_corte}\n")
-        printer.text(f'IMPORTE: ${importe_corte}\n')
+        txt = f"Cajero que lo consulta: {self.DB.CajeroenTurno()[0][1]}\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f"Hora de consulta: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f"Est {nombre_estacionamiento} CORTE Num {numero_corte}\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f'IMPORTE: ${importe_corte}\n\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
         nombre_dia_inicio = self.get_day_name(inicio_corte_fecha.weekday())
         inicio_corte_fecha = datetime.strftime(inicio_corte_fecha, '%d-%b-%Y a las %H:%M:%S')
-        printer.text(f'Inicio: {nombre_dia_inicio} {inicio_corte_fecha}\n')
-
+        txt = f'Inicio: {nombre_dia_inicio} {inicio_corte_fecha}\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
         nombre_dia_fin = self.get_day_name(final_corte_fecha.weekday())
         final_corte_fecha = datetime.strftime(final_corte_fecha, "%d-%b-%Y a las %H:%M:%S")
-        printer.text(f'Final: {nombre_dia_fin} {final_corte_fecha}\n')
+        txt = f'Final: {nombre_dia_fin} {final_corte_fecha}\n\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
-        BEDespuesCorteImpre = self.BEDespuesCorte.get()
 
+        txt = f"Folio {folio_inicio} al inicio del turno\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
-        printer.text(f"Folio {folio_inicio} al inicio del turno\n")
-        printer.text(f"Folio {folio_final} al final del turno\n") 
-        printer.text(f"Cajero en Turno: {nombre_cajero}\n")
-        printer.text(f"Turno: {turno_cajero}\n")
+        txt = f"Folio {folio_final} al final del turno\n\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
+        txt = f"Cajero en Turno: {nombre_cajero}\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
+        txt = f"Turno: {turno_cajero}\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
         BolCobrImpresion = self.DB.Cuantos_Boletos_Cobro_Reimpresion(numero_corte)
-        printer.text(f"Boletos Cobrados: {BolCobrImpresion}\n")
+
+        txt = f"Boletos Cobrados: {BolCobrImpresion}\n"
+        printer.text(txt)
+        list_corte.append(txt)
+
         BEDespuesCorteImpre = self.DB.boletos_expedidos_reimpresion(numero_corte)
-        printer.text(f'Boletos Expedidos: {BEDespuesCorteImpre}\n')
+        txt = f'Boletos Expedidos: {BEDespuesCorteImpre}\n'
+        printer.text(txt)
+        list_corte.append(txt)
+
         BAnterioresImpr = self.DB.consultar_corte(numero_corte-1)[0][3]
-        printer.text(f"Boletos Turno Anterior: {BAnterioresImpr}\n")
+        txt = f"Boletos Turno Anterior: {BAnterioresImpr}\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
-        BDentroImp = int(BAnterioresImpr) + int(BEDespuesCorteImpre) - int(BolCobrImpresion)
-        printer.text(f'Boletos dejados: {BDentroImp}\n')
+        BDentroImp = (int(BAnterioresImpr) + int(BEDespuesCorteImpre))-(int(BolCobrImpresion))
+        txt = f'Boletos dejados: {BDentroImp}\n'
+        printer.text(txt)
+        list_corte.append(txt)
 
-        printer.text('------------------------------\n')
-
-        self.ImporteCorte.set("")
+        txt = "----------------------------------\n\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
         respuesta=self.DB.desglose_cobrados(numero_corte)
 
         printer.set(align="center")
-        printer.text("Cantidad e Importes "+'\n')
+        txt = "Cantidad e Importes\n\n"
+        printer.text(txt)
+        list_corte.append(txt)
         printer.set(align="left")
 
-        printer.text("Cantidad - Tarifa - valor C/U - Total "+'\n')
+        txt = "Cantidad - Tarifa - valor C/U - Total \n"
+        printer.text(txt)
+        list_corte.append(txt)
+
         for fila in respuesta:
-            printer.text(f"  {str(fila[0])}  -  {str(fila[1])}  -  ${str(fila[2])}   -  ${str(fila[3])}\n")
+            txt = f"  {str(fila[0])}  -  {str(fila[1])}  -  ${str(fila[2])}   -  ${str(fila[3])}\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         else:
-            printer.text("\n")
-            printer.text(f"{BolCobrImpresion} Boletos        Suma total ${importe_corte}\n\n")    
+            txt = f"{BolCobrImpresion} Boletos        Suma total ${importe_corte}\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
-        printer.text("----------------------------------\n")
+        txt = "----------------------------------\n\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
         desgloce_cancelados = self.DB.desgloce_cancelados(numero_corte)
         if len(desgloce_cancelados) > 0:
             printer.set(align="center")
-            printer.text("Boletos cancelados\n\n")
+            txt = "Boletos cancelados\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
             printer.set(align="left")
 
             for boleto in desgloce_cancelados:
-                printer.text(f"Folio:{boleto[0]} - Motivo: {boleto[1]}\n")
-            printer.text("----------------------------------\n\n")
+                txt = f"Folio:{boleto[0]} - Motivo: {boleto[1]}\n"
+                printer.text(txt)
+                list_corte.append(txt)
+
+            txt = "----------------------------------\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         Quedados_Pensionados = self.controlador_crud_pensionados.get_Anteriores_Pensionados(numero_corte)
         Entradas_Totales_Pensionados = self.controlador_crud_pensionados.get_Entradas_Totales_Pensionados(numero_corte)
@@ -1290,15 +1353,31 @@ class FormularioOperacion:
         if Entradas_Totales_Pensionados > 0 or Salidas_Pensionados > 0 or Quedados_Pensionados > 0:
 
             printer.set(align="center")
-            printer.text("Entradas de pensionados\n\n")
+            txt = "Entradas de pensionados\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
             printer.set(align="left")
 
-            printer.text(f"Anteriores: {Anteriores_Pensionados}\n")
-            printer.text(f"Entradas: {Entradas_Totales_Pensionados}\n")
-            printer.text(f"Salidas: {Salidas_Pensionados}\n")
-            printer.text(f"Quedados: {Quedados}\n")
+            txt = f"Anteriores: {Anteriores_Pensionados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
-            printer.text("----------------------------------\n\n")
+            txt = f"Entradas: {Entradas_Totales_Pensionados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
+            txt = f"Salidas: {Salidas_Pensionados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
+            txt = f"Quedados: {Quedados}\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
+            # Imprime separador
+            txt = "----------------------------------\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         # Obtiene la cantidad e importes de las pensiones para el corte actual
         respuesta = self.DB.total_pensionados_corte(numero_corte)
@@ -1306,20 +1385,42 @@ class FormularioOperacion:
         # Si hay pensionados en el corte, se procede a imprimir la seccion correspondiente
         if len(respuesta) > 0:
             printer.set(align="center")
-            printer.text("Cantidad e Importes Pensiones" + '\n')
+            txt = "Cantidad e Importes Pensiones\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
             printer.set(align="left")
-            printer.text("Cuantos - Concepto - ImporteTotal " + '\n')
+            txt = "Cuantos - Concepto - ImporteTotal \n"
+            printer.text(txt)
+            list_corte.append(txt)
+
             for fila in respuesta:
-                printer.text(f"   {str(fila[0])}   -  {str(fila[1])}   -   ${str(fila[2])}\n")
+                txt = f"   {str(fila[0])}   -  {str(fila[1])}   -   ${str(fila[2])}\n"
+                printer.text(txt)
+                list_corte.append(txt)
+
             else:
-                printer.text("----------------------------------\n")
+                txt = f"----------------------------------\n"
+                printer.text(txt)
+                list_corte.append(txt)
 
         # Imprime ultimo separador
-        printer.text("----------------------------------\n")
+        txt = "----------------------------------\n"
+        printer.text(txt)
+        list_corte.append(txt)
 
         # Corta el papel
         printer.cut()
         printer.close()
+
+        txt_file_corte = f"../Reimpresion_Cortes/Reimpresion_{nombre_estacionamiento.replace(' ', '_')}_Corte_N°_{numero_corte}.txt"
+
+        with open(file=txt_file_corte, mode="w") as file:
+            file.writelines(list_corte)
+            file.close()
+
+        thread = Thread(target=send_other_corte)
+        thread.start()
 
         self.entry_cortes_anteriores.focus()
         self.corte_anterior.set("")
@@ -1778,8 +1879,8 @@ class FormularioOperacion:
             txt = "Cantidad e Importes Pensiones\n\n"
             printer.text(txt)
             list_corte.append(txt)
-
             printer.set(align="left")
+
             txt = "Cuantos - Concepto - ImporteTotal \n"
             printer.text(txt)
             list_corte.append(txt)
@@ -1793,6 +1894,44 @@ class FormularioOperacion:
                 txt = f"----------------------------------\n"
                 printer.text(txt)
                 list_corte.append(txt)
+
+
+        dir_path = path.abspath("../Reimpresion_Cortes/")
+        files = listdir(dir_path)
+        if len(files) > 1: 
+            printer.set(align="center")
+            txt = "Reimpresiones de corte\n\n"
+            printer.text(txt)
+            list_corte.append(txt)
+            printer.set(align="left")
+
+            for file in files:
+                _, ext = path.splitext(file)
+                if ext.lower() == ".txt":
+                    file_path = path.join(dir_path, file)
+                    txt = "-----------------\n"
+                    printer.text(txt)
+                    list_corte.append(txt)
+
+                    # Abrir el archivo y leer las primeras tres líneas
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        primeras_lineas = [next(f) for _ in range(3)]
+                        f.close()
+
+                    # Imprimir el nombre del archivo y las primeras tres líneas
+                    for linea in primeras_lineas:
+                        txt = f"{linea}"
+                        printer.text(txt)
+                        list_corte.append(txt)
+                    tools.remove_file(file_path)
+            txt = "-----------------\n"
+            printer.text(txt)
+            list_corte.append(txt)
+
+            # Imprime ultimo separador
+            txt = "----------------------------------\n"
+            printer.text(txt)
+            list_corte.append(txt)
 
         # Imprime ultimo separador
         txt = "----------------------------------\n"
