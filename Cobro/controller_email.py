@@ -21,9 +21,9 @@ username = 'monterrey89@pasesa.com.mx'
 password = '#Monterrey89'
 
 # Correos para enviar la informacion
-EMAIL_send_database = "sistemas@pasesa.com.mx"#"enviocorreospasesa@outlook.com"
-EMAIL_send_corte = "sistemas@pasesa.com.mx"#"ingresos@pasesa.com.mx"
-EMAIL_notification = "sistemas@pasesa.com.mx"#"ingresos@pasesa.com.mx"
+EMAIL_send_database =  "enviocorreospasesa@outlook.com"
+EMAIL_send_corte = "ingresos@pasesa.com.mx"
+EMAIL_notification = "ingresos@pasesa.com.mx"
 
 class ToolsEmail:
     """Clase que proporciona herramientas relacionadas con el correo electronico y archivos."""
