@@ -548,7 +548,7 @@ class FormularioOperacion:
             self.entryfolio.focus()
             return
 
-        if "Pension" in datos:
+        if "pension" in datos.lower():
             self.PensionadosSalida()
             return
 
